@@ -38,7 +38,7 @@ class App {
   }
 
   renderBottomRow() {
-    _.each([ 'sometime', 'completed', 'overdue', 'backlog' ], group => {
+    _.each([ 'completed', 'sometime', 'overdue', 'backlog' ], group => {
       const el = document.createElement('section')
 
       el.classList.add(group)

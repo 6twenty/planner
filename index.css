@@ -46,6 +46,7 @@ main section {
   height: 50vh;
   width: calc(100vw / 4);
   background: #aa66aa;
+  position: relative;
 }
 
 main section.day {
@@ -59,6 +60,33 @@ main section.today {
 
 main section.backlog {
   background: #995599;
+}
+
+main section::after {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 3rem;
+  right: 3rem;
+  bottom: 0;
+  text-align: center;
+  opacity: .5;
+}
+
+main section.completed::after {
+  content: 'Drag items here to complete them.';
+}
+
+main section.sometime::after {
+  content: 'Move items here that don\'t have a suitable due date.';
+}
+
+main section.overdue::after {
+  content: 'Items will show up here if they aren\'t completed in time. If this list is always empty, you\'re doing it right.';
+}
+
+main section.backlog::after {
+  content: 'Double-click to create a new item, then drag it to an appropriate list. Double-click an item again to edit.';
 }
 
 main .item {
