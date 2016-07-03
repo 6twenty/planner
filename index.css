@@ -17,16 +17,6 @@ body * {
   box-sizing: inherit;
 }
 
-main > div {
-  height: 50vh;
-}
-
-main > div::after {
-  display: block;
-  clear: left;
-  content: '';
-}
-
 main section {
   height: 100%;
   float: left;
@@ -52,14 +42,15 @@ main section[data-emoji][data-title]::before {
   content: attr(data-emoji) '   ' attr(data-title);
 }
 
-main .top section {
-  width: calc(100vw / 7);
-  background: #77aaff;
-}
-
-main .bottom section {
+main section {
+  height: 50vh;
   width: calc(100vw / 4);
   background: #aa66aa;
+}
+
+main section.day {
+  width: calc(100vw / 7);
+  background: #77aaff;
 }
 
 main section.today {
@@ -76,6 +67,9 @@ main .item {
   border-left: solid .5rem transparent;
   outline: 0;
   line-height: 1.5;
+}
+
+main .item:not([contenteditable="true"]) {
   cursor: -webkit-grab;
   cursor: grab;
 }

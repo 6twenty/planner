@@ -20,10 +20,7 @@ class App {
   }
 
   renderTopRow() {
-    const container = document.createElement('div')
     const date = moment().startOf('day').subtract(1, 'day')
-
-    container.classList.add('top')
 
     _.times(7, n => {
       const day = document.createElement('section')
@@ -36,17 +33,11 @@ class App {
       day.dataset.group = date.format('YYYY-MM-DD')
       day.setAttribute('data-group', date.format('YYYY-MM-DD'))
       day.setAttribute('data-title', title)
-      container.appendChild(day)
+      this.el.appendChild(day)
     })
-
-    this.el.appendChild(container)
   }
 
   renderBottomRow() {
-    const container = document.createElement('div')
-
-    container.classList.add('bottom')
-
     _.each([ 'sometime', 'completed', 'overdue', 'backlog' ], group => {
       const el = document.createElement('section')
 
@@ -55,10 +46,8 @@ class App {
       el.setAttribute('data-group', group)
       el.setAttribute('data-emoji', this.emojiForGroup(group))
       el.setAttribute('data-title', group)
-      container.appendChild(el)
+      this.el.appendChild(el)
     })
-
-    this.el.appendChild(container)
   }
 
   emojiForGroup(group) {
@@ -75,42 +64,49 @@ class App {
   }
 
   bindEvents() {
-    const els = this.el.querySelectorAll('section')
-    _(els).toArray().each(el => {
-      const group = el.dataset.group
-      const handler = this[group + 'Click']
-      if (!handler) return;
-      el.addEventListener('dblclick', handler.bind(this))
+    this.el.querySelector('.backlog').addEventListener('dblclick', e => {
+      if (!e.target.classList.contains('backlog')) return;
+      this.renderItem({}, e.target, { edit: true })
     })
   }
 
-  backlogClick(e) {
-    if (e.target.nodeName !== 'SECTION') return;
+  renderItem(item, target, opts) {
+    const el = document.createElement('article')
 
-    this.injectNewBacklogItem()
-  }
+    item.id = _.uniqueId()
+    item.group = item.group || 'backlog'
 
-  injectNewBacklogItem() {
-    const backlog = this.el.querySelector('.backlog')
-    const item = document.createElement('article')
+    el.classList.add('item')
+    el.dataset.item = item
 
-    item.classList.add('item')
-    item.dataset.id = _.uniqueId()
-    item.dataset.group = 'backlog'
-    item.setAttribute('contenteditable', 'true')
-    item.addEventListener('keydown', this.itemKeydown.bind(this))
-    item.addEventListener('blur', this.saveOnBlur.bind(this))
-    item.addEventListener('dblclick', this.editItem.bind(this))
-    backlog.appendChild(item)
-    item.focus()
+    el.addEventListener('keydown', this.itemKeydown.bind(this))
+    el.addEventListener('blur', this.itemBlur.bind(this))
+    el.addEventListener('dblclick', this.itemEdit.bind(this))
+
+    if (item.content) {
+      el.innerText = item.content
+    }
+
+    target.appendChild(el)
+
+    if (opts.edit) {
+      el.setAttribute('contenteditable', 'true')
+      el.focus()
+    }
+
+    return el
   }
 
   itemKeydown(e) {
-    if (e.which === 13) e.target.blur()
-    if (e.which === 27) this.revertItem(e.target)
+    if (!e.target.classList.contains('item')) return
+    if (e.target.getAttribute('contenteditable') !== 'true') return;
+    if (e.which === 13) e.target.blur() // Enter
+    if (e.which === 27) this.revertItem(e.target) // Esc
   }
 
-  saveOnBlur(e) {
+  itemBlur(e) {
+    if (!e.target.classList.contains('item')) return
+    if (e.target.getAttribute('contenteditable') !== 'true') return;
     this.saveItem(e.target)
   }
 
@@ -121,8 +117,8 @@ class App {
 
     el.removeAttribute('contenteditable')
 
-    this.items[el.dataset.id] = {
-      group: el.dataset.group,
+    this.items[el.dataset.item.id] = {
+      group: el.dataset.item.group,
       content: el.innerText
     }
 
@@ -131,18 +127,18 @@ class App {
 
   revertItem(el) {
     el.removeAttribute('contenteditable')
-    el.innerText = this.items[el.dataset.id].content
+    el.innerText = this.items[el.dataset.item.id].content
   }
 
   removeItem(el) {
-    delete this.items[el.dataset.id]
+    delete this.items[el.dataset.item.id]
 
     el.parentElement.removeChild(el)
 
     this.persistItems()
   }
 
-  editItem(e) {
+  itemEdit(e) {
     e.target.setAttribute('contenteditable', 'true')
     e.target.focus()
   }
@@ -165,7 +161,7 @@ class App {
     })
 
     drake.on('drop', (el, target, source, sibling) => {
-      const item = this.items[el.dataset.id]
+      const item = this.items[el.dataset.item.id]
       item.group = target.dataset.group
       this.persistItems()
     })
@@ -179,26 +175,15 @@ class App {
     const items = JSON.parse(string)
 
     _.each(items, item => {
-      const el = this.renderItem(item)
-      this.items[el.dataset.id] = item
+      let target = this.el.querySelector('[data-group="' + item.group + '"]')
+
+      // If the group can't be found, this item must be overdue
+      if (!target) target = this.el.querySelector('.overdue')
+
+      const el = this.renderItem(item, target, {})
+
+      this.items[item.id] = item
     }, this)
-  }
-
-  renderItem(item) {
-    let group = this.el.querySelector('[data-group="' + item.group + '"]')
-    const el = document.createElement('article')
-
-    // If the group can't be found, this item must be overdue
-    if (!group) group = this.el.querySelector('.overdue')
-
-    el.classList.add('item')
-    el.dataset.id = _.uniqueId()
-    el.dataset.group = item.group
-    el.innerText = item.content
-
-    group.appendChild(el)
-
-    return el
   }
 
 }
