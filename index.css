@@ -109,7 +109,7 @@ main section::after {
 }
 
 main section.completed::after {
-  content: 'Drag items here to complete them.';
+  content: 'Drag items here once completed. This list can be cleared periodically.';
 }
 
 main section.sometime::after {
