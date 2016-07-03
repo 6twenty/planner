@@ -66,7 +66,12 @@ class App {
   bindEvents() {
     this.el.querySelector('.backlog').addEventListener('dblclick', e => {
       if (!e.target.classList.contains('backlog')) return;
-      this.renderItem({}, e.target, { edit: true })
+
+      const item = {}
+
+      this.renderItem(item, e.target, { edit: true })
+
+      this.items[item.id] = item
     })
   }
 
@@ -77,7 +82,7 @@ class App {
     item.group = item.group || 'backlog'
 
     el.classList.add('item')
-    el.dataset.item = item
+    el.dataset.id = item.id
 
     el.addEventListener('keydown', this.itemKeydown.bind(this))
     el.addEventListener('blur', this.itemBlur.bind(this))
@@ -115,23 +120,21 @@ class App {
       return this.removeItem(el)
     }
 
-    el.removeAttribute('contenteditable')
+    const item = this.items[el.dataset.id]
 
-    this.items[el.dataset.item.id] = {
-      group: el.dataset.item.group,
-      content: el.innerText
-    }
+    item.content = el.innerText
+    el.removeAttribute('contenteditable')
 
     this.persistItems()
   }
 
   revertItem(el) {
     el.removeAttribute('contenteditable')
-    el.innerText = this.items[el.dataset.item.id].content
+    el.innerText = this.items[el.dataset.id].content
   }
 
   removeItem(el) {
-    delete this.items[el.dataset.item.id]
+    delete this.items[el.dataset.id]
 
     el.parentElement.removeChild(el)
 
@@ -161,7 +164,7 @@ class App {
     })
 
     drake.on('drop', (el, target, source, sibling) => {
-      const item = this.items[el.dataset.item.id]
+      const item = this.items[el.dataset.id]
       item.group = target.dataset.group
       this.persistItems()
     })
