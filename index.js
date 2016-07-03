@@ -54,6 +54,7 @@ class App {
       el.dataset.group = group;
       el.setAttribute('data-group', group)
       el.setAttribute('data-emoji', this.emojiForGroup(group))
+      el.setAttribute('data-title', group)
       container.appendChild(el)
     })
 

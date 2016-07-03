@@ -33,7 +33,6 @@ main section {
 }
 
 main section::before {
-  content: attr(data-emoji) attr(data-title);
   display: block;
   text-align: center;
   text-transform: uppercase;
@@ -41,8 +40,16 @@ main section::before {
   background: rgba(0,0,0,.1);
 }
 
+main section[data-title]::before {
+  content: attr(data-title);
+}
+
 main section[data-emoji]::before {
-  font-size: 3rem;
+  content: attr(data-emoji);
+}
+
+main section[data-emoji][data-title]::before {
+  content: attr(data-emoji) '   ' attr(data-title);
 }
 
 main .top section {
