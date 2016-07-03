@@ -11,6 +11,12 @@ body {
   font-size: 1.5rem;
   color: white;
   box-sizing: border-box;
+  cursor: default;
+
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
 }
 
 body * {
@@ -125,6 +131,7 @@ main .item:hover {
 
 main .item[contenteditable="true"] {
   border-color: yellow;
+  cursor: text;
 }
 
 /* Dragula */
