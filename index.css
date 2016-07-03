@@ -128,11 +128,21 @@ main .item {
   background: rgba(0,0,0,.2);
   padding: .5rem 1rem .5rem .5rem;
   border-left: solid .5rem transparent;
-  margin-bottom: 1px;
   outline: 0;
   line-height: 1.5;
   position: relative;
   z-index: 1;
+}
+
+main .item + .item::after {
+  position: absolute;
+  top: 0;
+  left: -.5rem;
+  right: 0;
+  width: auto;
+  height: 1px;
+  background: rgba(0,0,0,.1);
+  content: '';
 }
 
 main .item:not([contenteditable="true"]) {
