@@ -72,15 +72,26 @@ main section.backlog {
 
 main .item {
   background: rgba(0,0,0,.2);
-  padding: .5rem 1rem;
+  padding: .5rem 1rem .5rem .5rem;
+  border-left: solid .5rem transparent;
   outline: 0;
   line-height: 1.5;
-  padding-left: 1rem;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+main .item.gu-mirror {
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+main .item.gu-mirror,
+main .item:hover {
+  border-color: rgba(255,255,255,.5);
 }
 
 main .item[contenteditable="true"] {
-  padding-left: .5rem;
-  border-left: solid .5rem yellow;
+  border-color: yellow;
 }
 
 /* Dragula */
