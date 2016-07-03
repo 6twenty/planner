@@ -6,6 +6,7 @@ class App {
   constructor() {
     this.el = document.querySelector('main')
     this.items = {}
+    this.sections = {}
 
     this.renderLayout()
     this.bindEvents()
@@ -23,31 +24,53 @@ class App {
     const date = moment().startOf('day').subtract(1, 'day')
 
     _.times(7, n => {
-      const day = document.createElement('section')
+      date.add(1, 'days')
+
+      const group = date.format('YYYY-MM-DD')
       let title = date.format('dddd')
       if (n === 0) title = 'Today'
+      let classes = ['day']
+      if (n === 0) classes.push('today')
 
-      date.add(1, 'days')
-      day.classList.add('day')
-      if (n === 0) day.classList.add('today')
-      day.dataset.group = date.format('YYYY-MM-DD')
-      day.setAttribute('data-group', date.format('YYYY-MM-DD'))
-      day.setAttribute('data-title', title)
-      this.el.appendChild(day)
+      this.renderSection({
+        group: group,
+        title: title,
+        classes: classes
+      })
     })
   }
 
   renderBottomRow() {
     _.each([ 'completed', 'sometime', 'overdue', 'backlog' ], group => {
-      const el = document.createElement('section')
-
-      el.classList.add(group)
-      el.dataset.group = group;
-      el.setAttribute('data-group', group)
-      el.setAttribute('data-emoji', this.emojiForGroup(group))
-      el.setAttribute('data-title', group)
-      this.el.appendChild(el)
+      this.renderSection({
+        group: group,
+        title: group,
+        classes: [group]
+      })
     })
+  }
+
+  renderSection(opts) {
+    const section = document.createElement('section')
+    const header = document.createElement('header')
+    const list = document.createElement('div')
+    const emoji = this.emojiForGroup(opts.group)
+
+    header.innerText = opts.title
+    if (emoji) header.setAttribute('data-emoji', emoji)
+    section.appendChild(header)
+
+    list.classList.add('list')
+    section.appendChild(list)
+
+    section.dataset.group = opts.group
+
+    _.each(opts.classes, className => {
+      section.classList.add(className)
+    })
+
+    this.el.appendChild(section)
+    this.sections[opts.group] = section
   }
 
   emojiForGroup(group) {
@@ -64,8 +87,8 @@ class App {
   }
 
   bindEvents() {
-    this.el.querySelector('.backlog').addEventListener('dblclick', e => {
-      if (!e.target.classList.contains('backlog')) return;
+    this.el.querySelector('.backlog .list').addEventListener('dblclick', e => {
+      if (!e.target.classList.contains('list')) return;
 
       const item = {}
 
@@ -152,7 +175,7 @@ class App {
   }
 
   initDragula() {
-    const els = this.el.querySelectorAll('section')
+    const els = this.el.querySelectorAll('section .list')
 
     const drake = dragula({
       containers: _.toArray(els),
@@ -165,7 +188,9 @@ class App {
 
     drake.on('drop', (el, target, source, sibling) => {
       const item = this.items[el.dataset.id]
-      item.group = target.dataset.group
+      const group = target.parentElement.dataset.group
+
+      item.group = group
       this.persistItems()
     })
   }
@@ -178,10 +203,12 @@ class App {
     const items = JSON.parse(string)
 
     _.each(items, item => {
-      let target = this.el.querySelector('[data-group="' + item.group + '"]')
+      let target = this.sections[item.group]
 
       // If the group can't be found, this item must be overdue
       if (!target) target = this.el.querySelector('.overdue')
+
+      target = target.querySelector('.list')
 
       const el = this.renderItem(item, target, {})
 
