@@ -186,7 +186,8 @@ class App {
 
   revertItem(el) {
     el.removeAttribute('contenteditable')
-    el.innerText = this.items[el.dataset.id].content
+    el.innerText = this.items[el.dataset.id].content || ''
+    this.saveItem(el)
   }
 
   removeItem(el) {
