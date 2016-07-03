@@ -72,7 +72,7 @@ main section button {
   right: 0;
   width: 100%;
   border-radius: 0;
-  background: rgba(0,0,0,.3);
+  background: rgba(0,0,0,.1);
   border: none;
   text-align: center;
   text-transform: uppercase;
@@ -82,6 +82,10 @@ main section button {
   cursor: pointer;
   outline: 0;
   z-index: 2;
+}
+
+main section button:hover {
+  background: rgba(0,0,0,.2);
 }
 
 main section.day {
