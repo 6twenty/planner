@@ -1,6 +1,3 @@
-// TODO:
-// - Unify item rendering between creating a new item and rendering loaded items
-
 class App {
 
   constructor() {
