@@ -27,13 +27,15 @@ class App {
 
     _.times(7, n => {
       const day = document.createElement('section')
+      let title = date.format('dddd')
+      if (n === 0) title = 'Today'
 
       date.add(1, 'days')
       day.classList.add('day')
       if (n === 0) day.classList.add('today')
       day.dataset.group = date.format('YYYY-MM-DD')
       day.setAttribute('data-group', date.format('YYYY-MM-DD'))
-      day.setAttribute('data-title', date.format('dddd'))
+      day.setAttribute('data-title', title)
       container.appendChild(day)
     })
 
