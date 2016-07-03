@@ -128,6 +128,7 @@ main .item {
   background: rgba(0,0,0,.2);
   padding: .5rem 1rem .5rem .5rem;
   border-left: solid .5rem transparent;
+  margin-bottom: 1px;
   outline: 0;
   line-height: 1.5;
   position: relative;
