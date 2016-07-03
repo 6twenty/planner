@@ -90,11 +90,13 @@ main section.backlog::after {
 }
 
 main .item {
-  background: rgba(0,0,0,.2);
+  background: #7b447b;
   padding: .5rem 1rem .5rem .5rem;
   border-left: solid .5rem transparent;
   outline: 0;
   line-height: 1.5;
+  position: relative;
+  z-index: 1;
 }
 
 main .item:not([contenteditable="true"]) {
