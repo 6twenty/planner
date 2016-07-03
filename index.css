@@ -1,0 +1,96 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 62.5%;
+}
+
+body {
+  font-family: -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
+  line-height: 1.2;
+  font-size: 1.5rem;
+  color: white;
+  box-sizing: border-box;
+}
+
+body * {
+  box-sizing: inherit;
+}
+
+main > div {
+  height: 50vh;
+}
+
+main > div::after {
+  display: block;
+  clear: left;
+  content: '';
+}
+
+main section {
+  height: 100%;
+  float: left;
+}
+
+main section::before {
+  content: attr(data-emoji) attr(data-title);
+  display: block;
+  text-align: center;
+  text-transform: uppercase;
+  line-height: 5rem;
+  background: rgba(0,0,0,.1);
+}
+
+main section[data-emoji]::before {
+  font-size: 3rem;
+}
+
+main .top section {
+  width: calc(100vw / 7);
+  background: #77aaff;
+}
+
+main .bottom section {
+  width: calc(100vw / 4);
+  background: #aa66aa;
+}
+
+main section.today {
+  background: #6699ee;
+}
+
+main section.backlog {
+  background: #995599;
+}
+
+main .item {
+  background: rgba(0,0,0,.2);
+  padding: .5rem 1rem;
+  outline: 0;
+  line-height: 1.5;
+  margin: 1rem;
+}
+
+/* Dragula */
+
+.gu-mirror {
+  position: fixed !important;
+  margin: 0 !important;
+  z-index: 9999 !important;
+  opacity: 0.8;
+}
+
+.gu-hide {
+  display: none !important;
+}
+
+.gu-unselectable {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+
+.gu-transit {
+  opacity: 0.2;
+}
