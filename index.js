@@ -18,6 +18,7 @@ class App {
   renderLayout() {
     this.renderTopRow()
     this.renderBottomRow()
+    this.renderControls()
   }
 
   renderTopRow() {
@@ -86,6 +87,21 @@ class App {
     }
   }
 
+  renderControls() {
+    const completed = this.el.querySelector('.completed')
+    const button = document.createElement('button')
+
+    button.classList.add('clear')
+    button.innerText = 'Clear'
+    completed.appendChild(button)
+
+    button.addEventListener('click', e => {
+      if (!e.target.classList.contains('clear')) return;
+
+      this.clearCompleted()
+    })
+  }
+
   bindEvents() {
     this.el.querySelector('.backlog .list').addEventListener('dblclick', e => {
       if (!e.target.classList.contains('list')) return;
@@ -96,6 +112,23 @@ class App {
 
       this.items[item.id] = item
     })
+  }
+
+  clearCompleted() {
+    const list = this.el.querySelector('.completed .list')
+    const els = list.querySelectorAll('.item')
+
+    _(els).toArray().each(el => {
+      el.parentElement.removeChild(el)
+    })
+
+    _.forOwn(this.items, (item, id) => {
+      if (item.group === 'completed') {
+        delete this.items[id]
+      }
+    })
+
+    this.persistItems()
   }
 
   renderItem(item, target, opts) {
