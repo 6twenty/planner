@@ -75,7 +75,12 @@ main .item {
   padding: .5rem 1rem;
   outline: 0;
   line-height: 1.5;
-  margin: 1rem;
+  padding-left: 1rem;
+}
+
+main .item[contenteditable="true"] {
+  padding-left: .5rem;
+  border-left: solid .5rem yellow;
 }
 
 /* Dragula */
