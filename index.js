@@ -312,7 +312,7 @@ class Item {
 
     el.classList.add('item')
     el.dataset.id = this.id
-    el.innerText = this.content
+    el.innerHTML = marked(this.content)
 
     this.el = el
 
@@ -342,6 +342,7 @@ class Item {
   startEditing() {
     this.editing = true
     this.el.contentEditable = 'true'
+    this.el.innerText = this.content
 
     if (this.el.parentElement) {
       this.focus() // Ensure cursor is at end
@@ -356,15 +357,15 @@ class Item {
 
   finishEditing() {
     this.editing = false
+    this.content = this.el.innerText
     this.el.contentEditable = 'false'
+    this.el.innerHTML = marked(this.content)
     this.el.removeEventListener('keydown', this.onKeydown)
     this.el.removeEventListener('blur', this.onBlur)
 
     if (this.el.innerText.replace(/\s/g, '') === '') {
       return this.remove()
     }
-
-    this.content = this.el.innerText
 
     this.awaitEditing()
   }
@@ -394,7 +395,7 @@ class Item {
 
   onKeydown(e) {
     if (e.which === 27) this.cancelEditing() // Esc
-    if (e.which === 13) this.el.blur() // Enter
+    if (e.which === 13 && !e.shiftKey) this.el.blur() // Enter
   }
 
   onBlur(e) {

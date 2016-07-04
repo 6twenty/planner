@@ -144,7 +144,7 @@ main section.backlog .list::after {
 
 main .item {
   background: rgba(0,0,0,.2);
-  padding: .5rem 1rem .5rem .5rem;
+  padding: 0 1rem 0 .5rem;
   border-left: solid .5rem transparent;
   outline: 0;
   line-height: 1.5;
@@ -191,6 +191,17 @@ main .item:hover {
 main .item[contenteditable="true"] {
   border-color: yellow;
   cursor: text;
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+}
+
+main .item p {
+  padding: .5rem 0;
+  margin: 0;
+}
+
+main .item a {
+  color: yellow;
 }
 
 /* Dragula */
