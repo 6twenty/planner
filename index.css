@@ -27,7 +27,7 @@ main section {
   float: left;
   padding-top: 5rem;
   position: relative;
-  height: 50vh;
+  height: 34vh;
   width: calc(100vw / 4);
   background: #aa66aa;
   overflow: auto;
@@ -90,6 +90,7 @@ main section button:hover {
 
 main section.day {
   width: calc(100vw / 7);
+  height: 66vh;
   background: #77aaff;
 }
 
