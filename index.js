@@ -27,7 +27,7 @@ class List {
 
   build() {
     this.sections = [] // Ordered, for rendering sequentially
-    this.sectionByName = {} // For easy lookup
+    this.sectionById = {} // For easy lookup
     const date = moment().startOf('day').subtract(1, 'day')
 
     _(7).times(n => {
@@ -40,7 +40,7 @@ class List {
       }).build()
 
       this.sections.push(section)
-      this.sectionByName[name] = section
+      this.sectionById[name] = section
     })
 
     _([ DoneSection, WheneverSection, OverdueSection, BacklogSection ]).each(SectionClass => {
@@ -49,10 +49,32 @@ class List {
       }).build()
 
       this.sections.push(section)
-      this.sectionByName[name] = section
+      this.sectionById[section.id] = section
     })
 
+    this.dragula()
+
     return this
+  }
+
+  dragula() {
+    const els = _(this.sections).map('listEl').value()
+
+    const drake = dragula({
+      containers: els,
+      mirrorContainer: this.el,
+      moves: (el, source, handle, sibling) => {
+        const item = this.items[el.dataset.id]
+        if (item.editing) return false
+        return true
+      }
+    })
+
+    drake.on('drop', (el, target, source, sibling) => {
+      const item = this.items[el.dataset.id]
+      const section = this.sectionById[target.parentElement.dataset.id]
+      item.section = section
+    })
   }
 
   render() {
@@ -67,6 +89,7 @@ class List {
 class Section {
 
   constructor(opts) {
+    this.id = opts.id || opts.name
     this.list = opts.list
     this.name = opts.name
     this.title = opts.name
@@ -80,6 +103,7 @@ class Section {
     section.appendChild(header)
     section.appendChild(list)
 
+    section.dataset.id = this.id
     _(this.classes).each(className => {
       section.classList.add(className)
     })
@@ -122,6 +146,7 @@ class DaySection extends Section {
     const today = moment().startOf('day')
     const isToday = date.isSame(today)
 
+    opts.id = opts.name
     opts.name = 'day'
     super(opts)
 
