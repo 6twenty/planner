@@ -41,7 +41,9 @@ class List {
       this.sectionById[name] = section
     })
 
-    _([ DoneSection, WheneverSection, OverdueSection, BacklogSection ]).each(SectionClass => {
+    const sectionClasses = [ DoneSection, WheneverSection, OverdueSection, BacklogSection ]
+
+    sectionClasses.forEach(SectionClass => {
       const section = new SectionClass({
         list: this
       }).build()
@@ -57,7 +59,7 @@ class List {
   }
 
   dragula() {
-    const els = _(this.sections).map('listEl').value()
+    const els = this.sections.map(section => { return section.listEl })
 
     const drake = dragula({
       containers: els,
@@ -80,14 +82,14 @@ class List {
     const stored = localStorage.getItem('items')
     if (!stored) return
 
-    let items = _(JSON.parse(stored))
+    let items = JSON.parse(stored)
 
     // If `items` is a key/value object it needs to be converted to a simple array
-    if (!items.isArray()) {
-      items = _(items).values()
+    if (!Array.isArray(items)) {
+      items = Object.keys(items).map(id => { return items[id] })
     }
 
-    items.each(item => {
+    items.forEach(item => {
       let section = this.sectionById[item.group]
 
       if (!section) {
@@ -101,13 +103,13 @@ class List {
   }
 
   render() {
-    _(this.sections).each(section => {
+    this.sections.forEach(section => {
       section.render()
     })
   }
 
   save() {
-    const items = _(this.items).values().value()
+    const items = Object.keys(this.items).map(id => { return this.items[id] })
     const stringified = JSON.stringify(items)
     localStorage.setItem('items', stringified)
   }
@@ -133,7 +135,7 @@ class Section {
     section.appendChild(list)
 
     section.dataset.id = this.id
-    _(this.classes).each(className => {
+    this.classes.forEach(className => {
       section.classList.add(className)
     })
 
@@ -221,7 +223,8 @@ class DoneSection extends Section {
   }
 
   clear() {
-    _(this.list.items).forOwn((item, id) => {
+    Object.keys(this.list.items).forEach(id => {
+      const item = this.list.items[id]
       if (item.section.id === this.id) {
         item.remove()
       }
