@@ -90,7 +90,11 @@ class List {
     }
 
     items.each(item => {
-      const section = this.sectionById[item.group]
+      let section = this.sectionById[item.group]
+
+      if (!section) {
+        section = this.sectionById.overdue
+      }
 
       section.createItem({
         content: item.content
