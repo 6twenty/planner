@@ -143,6 +143,11 @@ class Section {
     this.el = section
     this.listEl = list
 
+    this.el.addEventListener('dblclick', e => {
+      if (e.target !== this.listEl) return;
+      this.createItem({ edit: true })
+    })
+
     return this
   }
 
@@ -258,17 +263,6 @@ class BacklogSection extends Section {
 
   emoji() {
     return '😉'
-  }
-
-  build() {
-    super.build()
-
-    this.el.addEventListener('dblclick', e => {
-      if (e.target !== this.listEl) return;
-      this.createItem({ edit: true })
-    })
-
-    return this
   }
 
 }
