@@ -64,6 +64,10 @@ main section .list {
   -webkit-overflow-scrolling: touch;
 }
 
+main section.done .list {
+  bottom: 3rem;
+}
+
 main section button {
   display: block;
   position: absolute;
@@ -79,6 +83,7 @@ main section button {
   color: inherit;
   font-size: inherit;
   line-height: 3rem;
+  height: 3rem;
   cursor: pointer;
   outline: 0;
   z-index: 2;
