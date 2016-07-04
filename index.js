@@ -53,6 +53,7 @@ class List {
     })
 
     this.dragula()
+    this.load()
 
     return this
   }
@@ -74,6 +75,26 @@ class List {
       const item = this.items[el.dataset.id]
       const section = this.sectionById[target.parentElement.dataset.id]
       item.section = section
+    })
+  }
+
+  load() {
+    const stored = localStorage.getItem('items')
+    if (!stored) return
+
+    let items = _(JSON.parse(stored))
+
+    // If `items` is a key/value object it needs to be converted to a simple array
+    if (!items.isArray()) {
+      items = _(items).values()
+    }
+
+    items.each(item => {
+      const section = this.sectionById[item.group]
+
+      section.createItem({
+        content: item.content
+      })
     })
   }
 
@@ -297,6 +318,7 @@ class Item {
 
     el.classList.add('item')
     el.dataset.id = this.id
+    el.innerText = this.content
 
     this.el = el
 
