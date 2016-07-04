@@ -39,7 +39,7 @@ class App {
   }
 
   renderBottomRow() {
-    _.each([ 'completed', 'sometime', 'overdue', 'backlog' ], group => {
+    _.each([ 'done', 'sometime', 'overdue', 'backlog' ], group => {
       this.renderSection({
         group: group,
         title: group,
@@ -75,7 +75,7 @@ class App {
     switch (group) {
       case 'sometime':
         return '🤔';
-      case 'completed':
+      case 'done':
         return '😍';
       case 'overdue':
         return '😰';
@@ -85,12 +85,12 @@ class App {
   }
 
   renderControls() {
-    const completed = this.el.querySelector('.completed')
+    const section = this.el.querySelector('.done')
     const button = document.createElement('button')
 
     button.classList.add('clear')
     button.innerText = 'Clear'
-    completed.appendChild(button)
+    section.appendChild(button)
 
     button.addEventListener('click', e => {
       if (!e.target.classList.contains('clear')) return;
@@ -112,7 +112,7 @@ class App {
   }
 
   clearCompleted() {
-    const list = this.el.querySelector('.completed .list')
+    const list = this.el.querySelector('.done .list')
     const els = list.querySelectorAll('.item')
 
     _(els).toArray().each(el => {
@@ -120,7 +120,7 @@ class App {
     })
 
     _.forOwn(this.items, (item, id) => {
-      if (item.group === 'completed') {
+      if (item.group === 'done') {
         delete this.items[id]
       }
     })
