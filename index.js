@@ -1,250 +1,267 @@
+// Drives the app
 class App {
 
   constructor() {
     this.el = document.querySelector('main')
+
+    this.lists = {
+      default: new List({
+        app: this
+      }).build()
+    }
+
+    this.lists.default.render()
+  }
+
+}
+
+// Can have multiple lists, but only one is active
+// Lists hold all the items within
+class List {
+
+  constructor(opts) {
+    this.app = opts.app
+    this.el = this.app.el
     this.items = {}
-    this.sections = {}
-
-    this.renderLayout()
-    this.bindEvents()
-    this.initDragula()
-    this.loadItems()
   }
 
-  // Renders the base skeleton markup
-  renderLayout() {
-    this.renderTopRow()
-    this.renderBottomRow()
-    this.renderControls()
-  }
-
-  renderTopRow() {
+  build() {
+    this.sections = [] // Ordered, for rendering sequentially
+    this.sectionByName = {} // For easy lookup
     const date = moment().startOf('day').subtract(1, 'day')
 
-    _.times(7, n => {
+    _(7).times(n => {
       date.add(1, 'days')
 
-      const group = date.format('YYYY-MM-DD')
-      let title = date.format('dddd')
-      if (n === 0) title = 'Today'
-      let classes = ['day']
-      if (n === 0) classes.push('today')
+      const name = date.format('YYYY-MM-DD')
+      const section = new DaySection({
+        list: this,
+        name: name
+      }).build()
 
-      this.renderSection({
-        group: group,
-        title: title,
-        classes: classes
-      })
+      this.sections.push(section)
+      this.sectionByName[name] = section
+    })
+
+    _([ DoneSection, WheneverSection, OverdueSection, BacklogSection ]).each(SectionClass => {
+      const section = new SectionClass({
+        list: this
+      }).build()
+
+      this.sections.push(section)
+      this.sectionByName[name] = section
+    })
+
+    return this
+  }
+
+  render() {
+    _(this.sections).each(section => {
+      section.render()
     })
   }
 
-  renderBottomRow() {
-    _.each([ 'done', 'whenever', 'overdue', 'backlog' ], group => {
-      this.renderSection({
-        group: group,
-        title: group,
-        classes: [group]
-      })
-    })
+}
+
+// Represents a visual group, and is where items get rendered
+class Section {
+
+  constructor(opts) {
+    this.list = opts.list
+    this.name = opts.name
+    this.title = opts.name
+    this.classes = [opts.name]
   }
 
-  renderSection(opts) {
+  build() {
     const section = document.createElement('section')
     const header = document.createElement('header')
     const list = document.createElement('div')
-    const emoji = this.emojiForGroup(opts.group)
-
-    header.innerText = opts.title
-    if (emoji) header.setAttribute('data-emoji', emoji)
     section.appendChild(header)
-
-    list.classList.add('list')
     section.appendChild(list)
 
-    section.dataset.group = opts.group
-
-    _.each(opts.classes, className => {
+    _(this.classes).each(className => {
       section.classList.add(className)
     })
 
-    this.el.appendChild(section)
-    this.sections[opts.group] = section
+    const emoji = this.emoji()
+    if (emoji) header.dataset.emoji = emoji
+    header.innerText = this.title
+    list.classList.add('list')
+
+    this.el = section
+    this.listEl = list
+
+    return this
   }
 
-  emojiForGroup(group) {
-    switch (group) {
-      case 'whenever':
-        return '🤔';
-      case 'done':
-        return '😍';
-      case 'overdue':
-        return '😰';
-      case 'backlog':
-        return '😉';
+  emoji() {
+
+  }
+
+  render() {
+    const parent = this.list.el
+    parent.appendChild(this.el)
+  }
+
+  createItem(opts) {
+    opts.section = this
+
+    const item = new Item(opts).build()
+
+    item.render()
+    this.list.items[item.id] = item
+  }
+
+}
+
+class DaySection extends Section {
+
+  constructor(opts) {
+    const date = moment(opts.name, 'YYYY-MM-DD')
+    const today = moment().startOf('day')
+    const isToday = date.isSame(today)
+
+    opts.name = 'day'
+    super(opts)
+
+    this.title = date.format('dddd')
+
+    if (isToday) {
+      this.title = 'Today'
+      this.classes.push('today')
     }
   }
 
-  renderControls() {
-    const section = this.el.querySelector('.done')
+}
+
+class DoneSection extends Section {
+
+  constructor(opts) {
+    opts.name = 'done'
+    super(opts)
+  }
+
+  emoji() {
+    return '😍'
+  }
+
+  build() {
+    super.build()
+
     const button = document.createElement('button')
 
-    button.classList.add('clear')
-    button.innerText = 'Clear'
-    section.appendChild(button)
+    button.innerText ='Clear'
+    this.el.appendChild(button)
 
-    button.addEventListener('click', e => {
-      if (!e.target.classList.contains('clear')) return;
-
-      this.clearCompleted()
-    })
+    return this
   }
 
-  bindEvents() {
-    this.el.querySelector('.backlog .list').addEventListener('dblclick', e => {
-      if (!e.target.classList.contains('list')) return;
+}
 
-      const item = {}
+class WheneverSection extends Section {
 
-      this.renderItem(item, e.target, { edit: true })
-
-      this.items[item.id] = item
-    })
+  constructor(opts) {
+    opts.name = 'whenever'
+    super(opts)
   }
 
-  clearCompleted() {
-    const list = this.el.querySelector('.done .list')
-    const els = list.querySelectorAll('.item')
-
-    _(els).toArray().each(el => {
-      el.parentElement.removeChild(el)
-    })
-
-    _.forOwn(this.items, (item, id) => {
-      if (item.group === 'done') {
-        delete this.items[id]
-      }
-    })
-
-    this.persistItems()
+  emoji() {
+    return '🤔'
   }
 
-  renderItem(item, target, opts) {
+}
+
+class OverdueSection extends Section {
+
+  constructor(opts) {
+    opts.name = 'overdue'
+    super(opts)
+  }
+
+  emoji() {
+    return '😰'
+  }
+
+}
+
+class BacklogSection extends Section {
+
+  constructor(opts) {
+    opts.name = 'backlog'
+    super(opts)
+  }
+
+  emoji() {
+    return '😉'
+  }
+
+  build() {
+    super.build()
+
+    this.el.addEventListener('dblclick', e => {
+      this.createItem({ edit: true })
+    })
+
+    return this
+  }
+
+}
+
+// Items have an ID (not persisted) and text content and belong to a section
+class Item {
+
+  constructor(opts) {
+    this.id = _.uniqueId()
+    this.editing = !!opts.edit
+    this._section = opts.section
+    this._content = opts.content || ''
+  }
+
+  get section () {
+    return this._section
+  }
+
+  set section(value) {
+    this._section = value
+  }
+
+  get content() {
+    return this._content
+  }
+
+  set content(value) {
+    this._content = value
+  }
+
+  toJSON() {
+    return {
+      group: this.section.name,
+      content: this.content
+    }
+  }
+
+  build() {
     const el = document.createElement('article')
 
-    item.id = _.uniqueId()
-    item.group = item.group || 'backlog'
-
     el.classList.add('item')
-    el.dataset.id = item.id
+    el.dataset.id = this.id
 
-    el.addEventListener('keydown', this.itemKeydown.bind(this))
-    el.addEventListener('blur', this.itemBlur.bind(this))
-    el.addEventListener('dblclick', this.itemEdit.bind(this))
-
-    if (item.content) {
-      el.innerText = item.content
+    if (this.editing) {
+      el.contentEditable = 'true'
     }
 
-    target.appendChild(el)
+    this.el = el
 
-    if (opts.edit) {
-      el.setAttribute('contenteditable', 'true')
-      el.focus()
+    return this
+  }
+
+  render() {
+    this.section.listEl.appendChild(this.el)
+
+    if (this.editing) {
+      this.el.focus()
     }
-
-    return el
-  }
-
-  itemKeydown(e) {
-    if (!e.target.classList.contains('item')) return
-    if (e.target.getAttribute('contenteditable') !== 'true') return;
-    if (e.which === 13) e.target.blur() // Enter
-    if (e.which === 27) this.revertItem(e.target) // Esc
-  }
-
-  itemBlur(e) {
-    if (!e.target.classList.contains('item')) return
-    if (e.target.getAttribute('contenteditable') !== 'true') return;
-    this.saveItem(e.target)
-  }
-
-  saveItem(el) {
-    if (el.innerText.replace(/\s/g, '') === '') {
-      return this.removeItem(el)
-    }
-
-    const item = this.items[el.dataset.id]
-
-    item.content = el.innerText
-    el.removeAttribute('contenteditable')
-
-    this.persistItems()
-  }
-
-  revertItem(el) {
-    el.removeAttribute('contenteditable')
-    el.innerText = this.items[el.dataset.id].content || ''
-    this.saveItem(el)
-  }
-
-  removeItem(el) {
-    delete this.items[el.dataset.id]
-
-    el.parentElement.removeChild(el)
-
-    this.persistItems()
-  }
-
-  itemEdit(e) {
-    e.target.setAttribute('contenteditable', 'true')
-    e.target.focus()
-  }
-
-  persistItems() {
-    const string = JSON.stringify(this.items)
-    localStorage.setItem('items', string)
-  }
-
-  initDragula() {
-    const els = this.el.querySelectorAll('section .list')
-
-    const drake = dragula({
-      containers: _.toArray(els),
-      mirrorContainer: this.el,
-      moves: (el, source, handle, sibling) => {
-        if (el.getAttribute('contenteditable') === 'true') return false
-        return true
-      }
-    })
-
-    drake.on('drop', (el, target, source, sibling) => {
-      const item = this.items[el.dataset.id]
-      const group = target.parentElement.dataset.group
-
-      item.group = group
-      this.persistItems()
-    })
-  }
-
-  loadItems() {
-    const string = localStorage.getItem('items')
-
-    if (!string) return
-
-    const items = JSON.parse(string)
-
-    _.each(items, item => {
-      let target = this.sections[item.group]
-
-      // If the group can't be found, this item must be overdue
-      if (!target) target = this.el.querySelector('.overdue')
-
-      target = target.querySelector('.list')
-
-      const el = this.renderItem(item, target, {})
-
-      this.items[item.id] = item
-    }, this)
   }
 
 }
