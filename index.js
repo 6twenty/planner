@@ -4,13 +4,11 @@ class App {
   constructor() {
     this.el = document.querySelector('main')
 
-    this.lists = {
-      default: new List({
-        app: this
-      }).build()
-    }
+    this.list = new List({
+      app: this
+    }).build()
 
-    this.lists.default.render()
+    this.list.render()
   }
 
 }
