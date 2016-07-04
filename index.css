@@ -152,6 +152,10 @@ main .item {
   z-index: 1;
 }
 
+main section.done .item {
+  text-decoration: line-through;
+}
+
 main .item + .item { background: rgba(0,0,0,.25); }
 main .item + .item + .item { background: rgba(0,0,0,.3); }
 main .item + .item + .item + .item { background: rgba(0,0,0,.35); }
