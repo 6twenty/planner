@@ -39,7 +39,7 @@ class App {
   }
 
   renderBottomRow() {
-    _.each([ 'done', 'sometime', 'overdue', 'backlog' ], group => {
+    _.each([ 'done', 'whenever', 'overdue', 'backlog' ], group => {
       this.renderSection({
         group: group,
         title: group,
@@ -73,7 +73,7 @@ class App {
 
   emojiForGroup(group) {
     switch (group) {
-      case 'sometime':
+      case 'whenever':
         return '🤔';
       case 'done':
         return '😍';

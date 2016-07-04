@@ -124,7 +124,7 @@ main section.done::after {
   content: 'Drag items here when you\'re done with them, then clear the list periodically.';
 }
 
-main section.sometime::after {
+main section.whenever::after {
   content: 'Move items here that don\'t have a suitable due date.';
 }
 
