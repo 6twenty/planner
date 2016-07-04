@@ -120,8 +120,8 @@ main section::after {
   opacity: .5;
 }
 
-main section.completed::after {
-  content: 'Drag items here once completed. This list can be cleared periodically.';
+main section.done::after {
+  content: 'Drag items here when you\'re done with them, then clear the list periodically.';
 }
 
 main section.sometime::after {
