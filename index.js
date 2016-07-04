@@ -200,6 +200,7 @@ class BacklogSection extends Section {
     super.build()
 
     this.el.addEventListener('dblclick', e => {
+      if (e.target !== this.listEl) return;
       this.createItem({ edit: true })
     })
 
@@ -216,6 +217,10 @@ class Item {
     this.editing = !!opts.edit
     this._section = opts.section
     this._content = opts.content || ''
+
+    this.onDblClick = this.onDblClick.bind(this)
+    this.onKeydown = this.onKeydown.bind(this)
+    this.onBlur =this.onBlur.bind(this)
   }
 
   get section () {
@@ -247,11 +252,13 @@ class Item {
     el.classList.add('item')
     el.dataset.id = this.id
 
-    if (this.editing) {
-      el.contentEditable = 'true'
-    }
-
     this.el = el
+
+    if (this.editing) {
+      this.startEditing()
+    } else {
+      this.awaitEditing()
+    }
 
     return this
   }
@@ -262,6 +269,72 @@ class Item {
     if (this.editing) {
       this.el.focus()
     }
+  }
+
+  remove() {
+    this.section.listEl.removeChild(this.el)
+  }
+
+  startEditing() {
+    this.editing = true
+    this.el.contentEditable = 'true'
+
+    if (this.el.parentElement) {
+      this.focus() // Ensure cursor is at end
+    } else {
+      this.el.focus()
+    }
+
+    this.el.removeEventListener('dblclick', this.onDblClick)
+    this.el.addEventListener('keydown', this.onKeydown)
+    this.el.addEventListener('blur', this.onBlur)
+  }
+
+  finishEditing() {
+    this.editing = false
+    this.el.contentEditable = 'false'
+    this.el.removeEventListener('keydown', this.onKeydown)
+    this.el.removeEventListener('blur', this.onBlur)
+
+    if (this.el.innerText.replace(/\s/g, '') === '') {
+      return this.remove()
+    }
+
+    this.content = this.el.innerText
+
+    this.awaitEditing()
+  }
+
+  cancelEditing() {
+    this.el.innerText = this.content
+    this.finishEditing()
+  }
+
+  awaitEditing() {
+    this.el.addEventListener('dblclick', this.onDblClick)
+  }
+
+  focus() {
+    this.el.focus()
+    const range = document.createRange();
+    range.selectNodeContents(this.el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  onDblClick(e) {
+    this.startEditing()
+  }
+
+  onKeydown(e) {
+    if (e.which === 27) this.cancelEditing() // Esc
+    if (e.which === 13) this.el.blur() // Enter
+  }
+
+  onBlur(e) {
+    this.finishEditing()
   }
 
 }
