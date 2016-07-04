@@ -83,6 +83,12 @@ class List {
     })
   }
 
+  save() {
+    const items = _(this.items).values().value()
+    const stringified = JSON.stringify(items)
+    localStorage.setItem('items', stringified)
+  }
+
 }
 
 // Represents a visual group, and is where items get rendered
@@ -179,7 +185,19 @@ class DoneSection extends Section {
     button.innerText ='Clear'
     this.el.appendChild(button)
 
+    button.addEventListener('click', e => {
+      this.clear()
+    })
+
     return this
+  }
+
+  clear() {
+    _(this.list.items).forOwn((item, id) => {
+      if (item.section.id === this.id) {
+        item.remove()
+      }
+    })
   }
 
 }
@@ -242,6 +260,7 @@ class Item {
     this.editing = !!opts.edit
     this._section = opts.section
     this._content = opts.content || ''
+    this.list = this._section.list
 
     this.onDblClick = this.onDblClick.bind(this)
     this.onKeydown = this.onKeydown.bind(this)
@@ -254,6 +273,7 @@ class Item {
 
   set section(value) {
     this._section = value
+    this.list.save()
   }
 
   get content() {
@@ -262,11 +282,12 @@ class Item {
 
   set content(value) {
     this._content = value
+    this.list.save()
   }
 
   toJSON() {
     return {
-      group: this.section.name,
+      group: this.section.id,
       content: this.content
     }
   }
@@ -298,6 +319,8 @@ class Item {
 
   remove() {
     this.section.listEl.removeChild(this.el)
+    delete this.list.items[this.id]
+    this.list.save()
   }
 
   startEditing() {
