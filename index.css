@@ -109,10 +109,10 @@ main section.backlog {
   background: #995599;
 }
 
-main section::after {
-  display: block;
+main section .list::after {
+  display: none;
   position: absolute;
-  top: 50%;
+  top: 3rem;
   left: 3rem;
   right: 3rem;
   bottom: 0;
@@ -120,19 +120,23 @@ main section::after {
   opacity: .5;
 }
 
-main section.done::after {
+main section .list:empty::after {
+  display: block;
+}
+
+main section.done .list::after {
   content: 'Drag items here when you\'re done with them, then clear the list periodically.';
 }
 
-main section.whenever::after {
+main section.whenever .list::after {
   content: 'Move items here that don\'t have a suitable due date.';
 }
 
-main section.overdue::after {
+main section.overdue .list::after {
   content: 'Items will show up here if they aren\'t completed in time. If this list is always empty, you\'re doing it right.';
 }
 
-main section.backlog::after {
+main section.backlog .list::after {
   content: 'Double-click to create a new item, then drag it to an appropriate list. Double-click an item again to edit.';
 }
 
