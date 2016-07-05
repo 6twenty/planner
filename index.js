@@ -3,16 +3,15 @@ class App {
 
   constructor() {
     this.el = document.querySelector('main')
-
     this.editing = false
-
     this._filtered = ''
 
     this.build()
     this.observe()
 
     this.list = new List({
-      app: this
+      app: this,
+      name: this.collection()
     }).build()
 
     this.list.render()
@@ -25,6 +24,10 @@ class App {
 
   static escapeRegex(string) {
     return string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  }
+
+  collection() {
+    return location.hash.replace(/^#/, '')
   }
 
   build() {
@@ -68,6 +71,17 @@ class App {
       }
     })
 
+    // Changing lists via popstate
+    window.addEventListener('popstate', e => {
+      const collection = this.collection()
+
+      if (collection) {
+        this.list.name = collection
+      } else {
+        this.list.name = undefined
+      }
+    })
+
   }
 
   get filtered() {
@@ -87,9 +101,20 @@ class App {
 class List {
 
   constructor(opts) {
+    if (opts.name) this._name = opts.name
     this.app = opts.app
     this.el = this.app.el
     this.items = {}
+  }
+
+  get name() {
+    return this._name
+  }
+
+  set name(value) {
+    this._name = value
+    this.clear()
+    this.load()
   }
 
   build() {
@@ -155,6 +180,27 @@ class List {
   }
 
   load() {
+    const items = this.stored()
+
+    items.forEach(item => {
+      let section = this.sectionById[item.group]
+
+      if (!section) {
+        section = this.sectionById.overdue
+      }
+
+      section.createItem({
+        content: item.content,
+        collection: item.collection
+      })
+    })
+  }
+
+  stored() {
+    if (this._stored) {
+      return this._stored
+    }
+
     const stored = localStorage.getItem('items')
     if (!stored) return
 
@@ -165,16 +211,16 @@ class List {
       items = Object.keys(items).map(id => { return items[id] })
     }
 
-    items.forEach(item => {
-      let section = this.sectionById[item.group]
+    this._stored = items
 
-      if (!section) {
-        section = this.sectionById.overdue
-      }
+    return items
+  }
 
-      section.createItem({
-        content: item.content
-      })
+  clear() {
+    Object.keys(this.items).forEach(id => {
+      const item = this.items[id]
+
+      item.detach()
     })
   }
 
@@ -240,7 +286,7 @@ class Section {
     this.el.addEventListener('dblclick', e => {
       if (e.target !== this.listEl && e.target.nodeName !== 'HEADER') return;
       const first = e.target !== this.listEl
-      this.createItem({ edit: true, first: first })
+      this.createItem({ edit: true, first: first, collection: this.list.name })
     })
 
     return this
@@ -260,7 +306,10 @@ class Section {
 
     const item = new Item(opts).build()
 
-    item.render({ first: opts.first })
+    if (item.collection === this.list.name) {
+      item.render({ first: opts.first })
+    }
+
     this.list.items[item.id] = item
   }
 
@@ -372,6 +421,7 @@ class Item {
 
   constructor(opts) {
     this.id = App.uniqueId()
+    this.collection = opts.collection
     this._editing = !!opts.edit
     this._section = opts.section
     this._content = opts.content || ''
@@ -410,10 +460,16 @@ class Item {
   }
 
   toJSON() {
-    return {
+    const obj = {
       group: this.section.id,
       content: this.content
     }
+
+    if (this.collection) {
+      obj.collection = this.collection
+    }
+
+    return obj
   }
 
   build() {
@@ -446,8 +502,13 @@ class Item {
     }
   }
 
-  remove() {
+  detach() {
+    if (!this.el.parentElement) return
     this.section.listEl.removeChild(this.el)
+  }
+
+  remove() {
+    this.detach()
     delete this.list.items[this.id]
     this.list.save()
   }
