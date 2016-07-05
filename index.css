@@ -23,7 +23,7 @@ body * {
   box-sizing: inherit;
 }
 
-main aside {
+aside {
   position: fixed;
   width: auto;
   z-index: 1;
@@ -34,13 +34,13 @@ main aside {
   font-weight: bold;
 }
 
-main aside::before {
+aside::before {
   content: 'Filtered: ';
   text-transform: uppercase;
   font-weight: normal;
 }
 
-main aside:empty {
+aside:empty {
   display: none;
 }
 
