@@ -2,17 +2,32 @@
 class App {
 
   constructor() {
-    this.el = document.querySelector('main')
+    this.el = document.body
     this.editing = false
     this._filtered = ''
 
     this.build()
     this.observe()
 
-    this.list = new List({
-      app: this,
-      name: this.collection()
+    this.lists = {}
+
+    this.lists.default = new List({
+      app: this
     }).build()
+
+    const collection = this.collection()
+
+    if (collection) {
+      let list = new List({
+        app: this,
+        name: collection
+      }).build()
+
+      this.lists[collection] = list
+      this.list = list
+    } else {
+      this.list = this.lists.default
+    }
 
     this.list.render()
   }
@@ -73,13 +88,19 @@ class App {
 
     // Changing lists via popstate
     window.addEventListener('popstate', e => {
-      const collection = this.collection()
+      const collection = this.collection() || 'default'
+      let list = this.lists[collection]
 
-      if (collection) {
-        this.list.name = collection
-      } else {
-        this.list.name = undefined
+      if (!list) {
+        list = this.lists[collection] = new List({
+          app: this,
+          name: collection
+        }).build()
       }
+
+      this.list.detach()
+      this.list = list
+      this.list.render()
     })
 
   }
@@ -101,20 +122,10 @@ class App {
 class List {
 
   constructor(opts) {
-    if (opts.name) this._name = opts.name
+    if (opts.name) this.name = opts.name
     this.app = opts.app
-    this.el = this.app.el
+    this.el = document.createElement('main')
     this.items = {}
-  }
-
-  get name() {
-    return this._name
-  }
-
-  set name(value) {
-    this._name = value
-    this.clear()
-    this.load()
   }
 
   build() {
@@ -138,6 +149,8 @@ class List {
         name: name
       }).build()
 
+      section.render()
+
       this.sections.push(section)
       this.sectionById[name] = section
     })
@@ -148,6 +161,8 @@ class List {
       const section = new SectionClass({
         list: this
       }).build()
+
+      section.render()
 
       this.sections.push(section)
       this.sectionById[section.id] = section
@@ -193,9 +208,13 @@ class List {
 
       section.createItem({
         content: item.content,
-        collection: item.collection
+        collection: this.name
       })
     })
+  }
+
+  key() {
+    return this.name ? `items:${this.name}` : 'items'
   }
 
   stored() {
@@ -203,7 +222,7 @@ class List {
       return this._stored
     }
 
-    const stored = localStorage.getItem('items')
+    const stored = localStorage.getItem(this.key())
     if (!stored) return
 
     let items = JSON.parse(stored)
@@ -226,10 +245,12 @@ class List {
     })
   }
 
+  detach() {
+    this.app.el.removeChild(this.el)
+  }
+
   render() {
-    this.sections.forEach(section => {
-      section.render()
-    })
+    this.app.el.appendChild(this.el)
   }
 
   save() {
@@ -240,7 +261,7 @@ class List {
     const stringified = JSON.stringify(items)
 
     this._stored = null
-    localStorage.setItem('items', stringified)
+    localStorage.setItem(this.key(), stringified)
   }
 
   filter() {
@@ -296,8 +317,14 @@ class Section {
 
     this.el.addEventListener('dblclick', e => {
       if (e.target !== this.listEl && e.target.nodeName !== 'HEADER') return;
+
       const first = e.target !== this.listEl
-      this.createItem({ edit: true, first: first, collection: this.list.name })
+
+      this.createItem({
+        edit: true,
+        first: first,
+        collection: this.list.name
+      })
     })
 
     return this
@@ -473,16 +500,10 @@ class Item {
   }
 
   toJSON() {
-    const obj = {
+    return {
       group: this.section.id,
       content: this.content
     }
-
-    if (this.collection) {
-      obj.collection = this.collection
-    }
-
-    return obj
   }
 
   build() {
