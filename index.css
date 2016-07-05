@@ -23,6 +23,27 @@ body * {
   box-sizing: inherit;
 }
 
+main aside {
+  position: fixed;
+  width: auto;
+  z-index: 1;
+  background: hsla(0,0%,0%,.66);
+  padding: .5rem 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+}
+
+main aside::before {
+  content: 'Filtered: ';
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+main aside:empty {
+  display: none;
+}
+
 main section {
   float: left;
   padding-top: 5rem;

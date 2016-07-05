@@ -4,6 +4,13 @@ class App {
   constructor() {
     this.el = document.querySelector('main')
 
+    this.editing = false
+
+    this._filtered = ''
+
+    this.build()
+    this.observe()
+
     this.list = new List({
       app: this
     }).build()
@@ -14,6 +21,63 @@ class App {
   static uniqueId() {
     this._counter = this._counter || 0
     return ++this._counter
+  }
+
+  static escapeRegex(string) {
+    return string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+  }
+
+  build() {
+    this.aside = document.createElement('aside')
+    this.el.appendChild(this.aside)
+  }
+
+  observe() {
+
+    // For regular keys, use `keypress` (provides the correct char code)
+    window.addEventListener('keypress', e => {
+      if (this.editing) return
+      if (e.metaKey) return
+      if (e.ctrlKey) return
+      if (e.altKey) return
+      if (e.which === 13) return
+
+      const char = String.fromCharCode(e.which)
+
+      if (!char) return;
+
+      this.filtered += char
+    })
+
+    // For special keys (esc and backspace), use `keydown`
+    window.addEventListener('keydown', e => {
+      if (this.editing) return
+      if (e.metaKey) return
+      if (e.ctrlKey) return
+      if (e.altKey) return
+      if (e.shiftKey) return
+
+      if (e.which === 27) { // Esc
+        e.preventDefault()
+        this.filtered = ''
+      }
+
+      if (e.which === 8) { // Backspace
+        e.preventDefault()
+        this.filtered = this.filtered.slice(0, this.filtered.length - 1)
+      }
+    })
+
+  }
+
+  get filtered() {
+    return this._filtered
+  }
+
+  set filtered(value) {
+    this._filtered = value
+    this.aside.innerText = value
+    this.list.filter()
   }
 
 }
@@ -124,6 +188,20 @@ class List {
     const items = Object.keys(this.items).map(id => { return this.items[id] })
     const stringified = JSON.stringify(items)
     localStorage.setItem('items', stringified)
+  }
+
+  filter() {
+    const regex = new RegExp(App.escapeRegex(this.app.filtered), 'i')
+
+    Object.keys(this.items).forEach(id => {
+      const item = this.items[id]
+
+      if (regex.test(item.content)) {
+        item.el.style.display = ''
+      } else {
+        item.el.style.display = 'none'
+      }
+    })
   }
 
 }
@@ -294,7 +372,7 @@ class Item {
 
   constructor(opts) {
     this.id = App.uniqueId()
-    this.editing = !!opts.edit
+    this._editing = !!opts.edit
     this._section = opts.section
     this._content = opts.content || ''
     this.list = this._section.list
@@ -302,6 +380,15 @@ class Item {
     this.onDblClick = this.onDblClick.bind(this)
     this.onKeydown = this.onKeydown.bind(this)
     this.onBlur =this.onBlur.bind(this)
+  }
+
+  get editing () {
+    return this._editing
+  }
+
+  set editing(value) {
+    this._editing = value
+    this.list.app.editing = value
   }
 
   get section () {
