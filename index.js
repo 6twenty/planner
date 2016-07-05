@@ -9,25 +9,9 @@ class App {
     this.build()
     this.observe()
 
-    this.lists = {}
-
-    this.lists.default = new List({
+    this.list = new List({
       app: this
     }).build()
-
-    const collection = this.collection()
-
-    if (collection) {
-      let list = new List({
-        app: this,
-        name: collection
-      }).build()
-
-      this.lists[collection] = list
-      this.list = list
-    } else {
-      this.list = this.lists.default
-    }
 
     this.list.render()
   }
@@ -39,10 +23,6 @@ class App {
 
   static escapeRegex(string) {
     return string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-  }
-
-  collection() {
-    return location.hash.replace(/^#/, '')
   }
 
   build() {
@@ -84,23 +64,6 @@ class App {
         e.preventDefault()
         this.filtered = this.filtered.slice(0, this.filtered.length - 1)
       }
-    })
-
-    // Changing lists via popstate
-    window.addEventListener('popstate', e => {
-      const collection = this.collection() || 'default'
-      let list = this.lists[collection]
-
-      if (!list) {
-        list = this.lists[collection] = new List({
-          app: this,
-          name: collection
-        }).build()
-      }
-
-      this.list.detach()
-      this.list = list
-      this.list.render()
     })
 
   }
@@ -207,14 +170,9 @@ class List {
       }
 
       section.createItem({
-        content: item.content,
-        collection: this.name
+        content: item.content
       })
     })
-  }
-
-  key() {
-    return this.name ? `items:${this.name}` : 'items'
   }
 
   stored() {
@@ -222,7 +180,7 @@ class List {
       return this._stored
     }
 
-    const stored = localStorage.getItem(this.key())
+    const stored = localStorage.getItem('items')
     if (!stored) return
 
     let items = JSON.parse(stored)
@@ -237,18 +195,6 @@ class List {
     return items
   }
 
-  clear() {
-    Object.keys(this.items).forEach(id => {
-      const item = this.items[id]
-
-      item.detach()
-    })
-  }
-
-  detach() {
-    this.app.el.removeChild(this.el)
-  }
-
   render() {
     this.app.el.appendChild(this.el)
   }
@@ -261,7 +207,7 @@ class List {
     const stringified = JSON.stringify(items)
 
     this._stored = null
-    localStorage.setItem(this.key(), stringified)
+    localStorage.setItem('items', stringified)
   }
 
   filter() {
@@ -269,10 +215,6 @@ class List {
 
     Object.keys(this.items).forEach(id => {
       const item = this.items[id]
-
-      if (item.collection !== this.name) {
-        return
-      }
 
       if (regex.test(item.content)) {
         item.show()
@@ -322,8 +264,7 @@ class Section {
 
       this.createItem({
         edit: true,
-        first: first,
-        collection: this.list.name
+        first: first
       })
     })
 
@@ -345,10 +286,6 @@ class Section {
     const item = new Item(opts).build()
 
     item.render({ first: opts.first })
-
-    if (item.collection !== this.list.name) {
-      item.hide()
-    }
 
     this.list.items[item.id] = item
   }
@@ -461,7 +398,6 @@ class Item {
 
   constructor(opts) {
     this.id = App.uniqueId()
-    this.collection = opts.collection
     this._editing = !!opts.edit
     this._section = opts.section
     this._content = opts.content || ''
