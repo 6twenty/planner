@@ -11,6 +11,11 @@ class App {
     this.list.render()
   }
 
+  static uniqueId() {
+    this._counter = this._counter || 0
+    return ++this._counter
+  }
+
 }
 
 // Can have multiple lists, but only one is active
@@ -26,9 +31,11 @@ class List {
   build() {
     this.sections = [] // Ordered, for rendering sequentially
     this.sectionById = {} // For easy lookup
-    const date = moment().startOf('day').subtract(1, 'day')
 
-    _(7).times(n => {
+    const date = moment().startOf('day').subtract(1, 'day')
+    const times = [1,2,3,4,5,6,7]
+    
+    times.forEach(n => {
       date.add(1, 'days')
 
       const name = date.format('YYYY-MM-DD')
@@ -276,7 +283,7 @@ class BacklogSection extends Section {
 class Item {
 
   constructor(opts) {
-    this.id = _.uniqueId()
+    this.id = App.uniqueId()
     this.editing = !!opts.edit
     this._section = opts.section
     this._content = opts.content || ''
