@@ -97,13 +97,14 @@ main section button:hover {
 }
 
 main section.day {
-  width: calc(100vw / 7);
+  width: calc(100vw / 6);
   height: 60vh;
   background: #77aaff;
   border-top: none;
 }
 
-main section.today {
+main section.today,
+main section.weekend {
   background: #6699ee;
 }
 

@@ -33,10 +33,15 @@ class List {
     this.sectionById = {} // For easy lookup
 
     const date = moment().startOf('day').subtract(1, 'day')
-    const times = [1,2,3,4,5,6,7]
+    const times = [1,2,3,4,5,6]
 
     times.forEach(n => {
       date.add(1, 'days')
+
+      if (date.day() === 0) {
+        // Skip Sundays
+        date.add(1, 'days')
+      }
 
       const name = date.format('YYYY-MM-DD')
       const section = new DaySection({
@@ -189,6 +194,7 @@ class DaySection extends Section {
     const date = moment(opts.name, 'YYYY-MM-DD')
     const today = moment().startOf('day')
     const isToday = date.isSame(today)
+    const isSaturday = date.day() === 6
 
     opts.id = opts.name
     opts.name = 'day'
@@ -199,6 +205,9 @@ class DaySection extends Section {
     if (isToday) {
       this.title = 'Today'
       this.classes.push('today')
+    } else if (isSaturday) {
+      this.title = 'Weekend'
+      this.classes.push('weekend')
     }
   }
 
