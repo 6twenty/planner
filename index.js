@@ -247,10 +247,14 @@ class List {
     Object.keys(this.items).forEach(id => {
       const item = this.items[id]
 
+      if (item.collection !== this.name) {
+        return
+      }
+
       if (regex.test(item.content)) {
-        item.el.style.display = ''
+        item.show()
       } else {
-        item.el.style.display = 'none'
+        item.hide()
       }
     })
   }
@@ -311,8 +315,10 @@ class Section {
 
     const item = new Item(opts).build()
 
-    if (item.collection === this.list.name) {
-      item.render({ first: opts.first })
+    item.render({ first: opts.first })
+
+    if (item.collection !== this.list.name) {
+      item.hide()
     }
 
     this.list.items[item.id] = item
@@ -516,6 +522,14 @@ class Item {
     this.detach()
     delete this.list.items[this.id]
     this.list.save()
+  }
+
+  show() {
+    this.el.style.display = ''
+  }
+
+  hide() {
+    this.el.style.display = 'none'
   }
 
   startEditing() {
