@@ -238,6 +238,8 @@ class List {
     const ids = [...els].map(el => { return el.dataset.id })
     const items = ids.map(id => { return this.items[id] })
     const stringified = JSON.stringify(items)
+
+    this._stored = null
     localStorage.setItem('items', stringified)
   }
 
