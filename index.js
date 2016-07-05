@@ -182,6 +182,8 @@ class List {
   load() {
     const items = this.stored()
 
+    if (!items) return
+
     items.forEach(item => {
       let section = this.sectionById[item.group]
 
@@ -231,7 +233,10 @@ class List {
   }
 
   save() {
-    const items = Object.keys(this.items).map(id => { return this.items[id] })
+    // Get order from the DOM
+    const els = this.el.querySelectorAll('.item:not(.gu-mirror)')
+    const ids = [...els].map(el => { return el.dataset.id })
+    const items = ids.map(id => { return this.items[id] })
     const stringified = JSON.stringify(items)
     localStorage.setItem('items', stringified)
   }
