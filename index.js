@@ -34,7 +34,7 @@ class List {
 
     const date = moment().startOf('day').subtract(1, 'day')
     const times = [1,2,3,4,5,6,7]
-    
+
     times.forEach(n => {
       date.add(1, 'days')
 
@@ -155,8 +155,9 @@ class Section {
     this.listEl = list
 
     this.el.addEventListener('dblclick', e => {
-      if (e.target !== this.listEl) return;
-      this.createItem({ edit: true })
+      if (e.target !== this.listEl && e.target.nodeName !== 'HEADER') return;
+      const first = e.target !== this.listEl
+      this.createItem({ edit: true, first: first })
     })
 
     return this
@@ -176,7 +177,7 @@ class Section {
 
     const item = new Item(opts).build()
 
-    item.render()
+    item.render({ first: opts.first })
     this.list.items[item.id] = item
   }
 
@@ -337,8 +338,12 @@ class Item {
     return this
   }
 
-  render() {
-    this.section.listEl.appendChild(this.el)
+  render(opts) {
+    if (opts.first) {
+      this.section.listEl.insertBefore(this.el, this.section.listEl.firstChild)
+    } else {
+      this.section.listEl.appendChild(this.el)
+    }
 
     if (this.editing) {
       this.el.focus()
