@@ -47,9 +47,8 @@ aside:empty {
 main section {
   float: left;
   padding-top: 5rem;
-  border-top: solid .5rem rgba(0,0,0,.5);
   position: relative;
-  height: 40vh;
+  height: 50vh;
   width: calc(100vw / 4);
   background: #aa66aa;
   overflow: auto;
@@ -117,20 +116,28 @@ main section button:hover {
   background: rgba(0,0,0,.2);
 }
 
-main section.day {
-  width: calc(100vw / 6);
-  height: 60vh;
+main section.day,
+main section.week,
+main section.month,
+main section.backlog {
   background: #77aaff;
-  border-top: none;
 }
 
 main section.today,
-main section.weekend {
+main section.backlog {
   background: #6699ee;
 }
 
-main section.backlog {
-  background: #995599;
+main section.week,
+main section.month,
+main section.backlog,
+main section.done {
+  border-top: solid .5rem rgba(0,0,0,.5);
+}
+
+main section.overdue,
+main section.done {
+  border-left: solid .5rem rgba(0,0,0,.5);
 }
 
 main section .list::after {
@@ -152,16 +159,8 @@ main section.done .list::after {
   content: 'Drag items here when you\'re done with them, then clear the list periodically.';
 }
 
-main section.whenever .list::after {
-  content: 'Move items here that don\'t have a suitable due date.';
-}
-
 main section.overdue .list::after {
   content: 'Items will show up here if they aren\'t completed in time. If this list is always empty, you\'re doing it right.';
-}
-
-main section.backlog .list::after {
-  content: 'Double-click to create a new item, then drag it to an appropriate list. Double-click an item again to edit.';
 }
 
 main .item {
@@ -174,7 +173,7 @@ main .item {
   z-index: 1;
 }
 
-main section.done .item {
+main section.done .item:not([contenteditable="true"]) {
   text-decoration: line-through;
 }
 

@@ -96,7 +96,7 @@ class List {
     this.sectionById = {} // For easy lookup
 
     const date = moment().startOf('day').subtract(1, 'day')
-    const times = [1,2,3,4,5,6]
+    const times = [1,2,3]
 
     times.forEach(n => {
       date.add(1, 'days')
@@ -106,19 +106,19 @@ class List {
         date.add(1, 'days')
       }
 
-      const name = date.format('YYYY-MM-DD')
       const section = new DaySection({
         list: this,
-        name: name
+        date: date
       }).build()
 
       section.render()
 
       this.sections.push(section)
-      this.sectionById[name] = section
+      this.sectionById[section.id] = section
     })
 
-    const sectionClasses = [ DoneSection, WheneverSection, OverdueSection, BacklogSection ]
+
+    const sectionClasses = [ OverdueSection, WeekSection, MonthSection, BacklogSection, DoneSection ]
 
     sectionClasses.forEach(SectionClass => {
       const section = new SectionClass({
@@ -295,12 +295,12 @@ class Section {
 class DaySection extends Section {
 
   constructor(opts) {
-    const date = moment(opts.name, 'YYYY-MM-DD')
+    const date = opts.date
     const today = moment().startOf('day')
     const isToday = date.isSame(today)
     const isSaturday = date.day() === 6
 
-    opts.id = opts.name
+    opts.id = date.format('YYYY-MM-DD')
     opts.name = 'day'
     super(opts)
 
@@ -313,6 +313,36 @@ class DaySection extends Section {
       this.title = 'Weekend'
       this.classes.push('weekend')
     }
+  }
+
+}
+
+class WeekSection extends Section {
+
+  constructor(opts) {
+    const dateStart = moment().startOf('week')
+    const dateEnd = moment().endOf('week')
+
+    opts.id = `${dateStart.format('YYYY-MM-DD')}-${dateEnd.format('YYYY-MM-DD')}`
+    opts.name = 'week'
+    super(opts)
+
+    this.title = 'This week'
+  }
+
+}
+
+class MonthSection extends Section {
+
+  constructor(opts) {
+    const dateStart = moment().startOf('month')
+    const dateEnd = moment().endOf('month')
+
+    opts.id = `${dateStart.format('YYYY-MM-DD')}-${dateEnd.format('YYYY-MM-DD')}`
+    opts.name = 'month'
+    super(opts)
+
+    this.title = 'This month'
   }
 
 }
@@ -354,19 +384,6 @@ class DoneSection extends Section {
 
 }
 
-class WheneverSection extends Section {
-
-  constructor(opts) {
-    opts.name = 'whenever'
-    super(opts)
-  }
-
-  emoji() {
-    return '🤔'
-  }
-
-}
-
 class OverdueSection extends Section {
 
   constructor(opts) {
@@ -385,10 +402,6 @@ class BacklogSection extends Section {
   constructor(opts) {
     opts.name = 'backlog'
     super(opts)
-  }
-
-  emoji() {
-    return '😉'
   }
 
 }
