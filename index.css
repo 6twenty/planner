@@ -159,6 +159,14 @@ main section .list:empty::after {
   display: block;
 }
 
+main section.week .list::after {
+  content: 'Items that you intend to complete this week, ' attr(data-dates) '. Items will move to Overdue if not completed by next week.';
+}
+
+main section.month .list::after {
+  content: 'Items that you intend to complete in the month of ' attr(data-date) '. Items will move to Overdue if not completed by next month.';
+}
+
 main section.backlog .list::after {
   content: 'Double-click to create a new item, then drag it to an appropriate list. Double-click an item again to edit.';
 }

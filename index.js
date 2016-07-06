@@ -25,6 +25,26 @@ class App {
     return string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
   }
 
+  // Examples:
+  // - January 12 - 19
+  // - January 12 - February 3
+  static formatWeekRange(range) {
+    const today = moment()
+    let fromFormat = 'MMMM D'
+    let toFormat = 'MMMM D'
+
+    fromFormat = 'MMMM D';
+
+    if (range.from.month() === range.to.month()) {
+      toFormat = 'D'
+    }
+
+    const fromDate = range.from.format(fromFormat)
+    const toDate = range.to.format(toFormat)
+
+    return `${fromDate} - ${toDate}`
+  }
+
   build() {
     this.aside = document.createElement('aside')
     this.el.appendChild(this.aside)
@@ -330,6 +350,17 @@ class WeekSection extends Section {
     this.title = 'This week'
   }
 
+  build() {
+    const dateStart = moment().startOf('week')
+    const dateEnd = moment().endOf('week')
+
+    super.build()
+
+    this.listEl.dataset.dates = App.formatWeekRange({ from: dateStart, to: dateEnd })
+
+    return this
+  }
+
 }
 
 class MonthSection extends Section {
@@ -343,6 +374,16 @@ class MonthSection extends Section {
     super(opts)
 
     this.title = 'This month'
+  }
+
+  build() {
+    const date = moment()
+
+    super.build()
+
+    this.listEl.dataset.date = date.format('MMMM')
+
+    return this
   }
 
 }
