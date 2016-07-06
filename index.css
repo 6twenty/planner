@@ -50,7 +50,6 @@ main section {
   position: relative;
   height: 50vh;
   width: calc(100vw / 4);
-  background: #aa66aa;
   overflow: auto;
 }
 
@@ -126,6 +125,11 @@ main section.backlog {
 main section.today,
 main section.backlog {
   background: #6699ee;
+}
+
+main section.overdue,
+main section.done {
+  background: #aa66aa;
 }
 
 main section.week,
