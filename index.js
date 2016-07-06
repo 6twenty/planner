@@ -33,8 +33,6 @@ class App {
     let fromFormat = 'MMMM D'
     let toFormat = 'MMMM D'
 
-    fromFormat = 'MMMM D';
-
     if (range.from.month() === range.to.month()) {
       toFormat = 'D'
     }
