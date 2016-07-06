@@ -155,6 +155,10 @@ main section .list:empty::after {
   display: block;
 }
 
+main section.backlog .list::after {
+  content: 'Double-click to create a new item, then drag it to an appropriate list. Double-click an item again to edit.';
+}
+
 main section.done .list::after {
   content: 'Drag items here when you\'re done with them, then clear the list periodically.';
 }
