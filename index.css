@@ -127,9 +127,12 @@ main section.backlog {
   background: #6699ee;
 }
 
-main section.overdue,
+main section.overdue {
+  background: #e05252;
+}
+
 main section.done {
-  background: #aa66aa;
+  background: #66aa66;
 }
 
 main section.week,
