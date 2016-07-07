@@ -55,11 +55,11 @@ main > div {
 }
 
 main > div:first-of-type {
-  width: calc((100vw / 4) * 3);
+  width: 75vw;
 }
 
 main > div:last-of-type {
-  width: calc(100vw / 4);
+  width: 25vw;
 }
 
 main::after,
@@ -74,7 +74,7 @@ main section {
   padding-top: 5rem;
   position: relative;
   height: 50vh;
-  width: calc(100vw / 4);
+  width: 25vw;
   overflow: auto;
   background: transparent;
 }
