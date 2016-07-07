@@ -113,8 +113,13 @@ class List {
     this.sections = [] // Ordered, for rendering sequentially
     this.sectionById = {} // For easy lookup
 
+    const leftContainer = document.createElement('div')
+    const rightContainer = document.createElement('div')
     const date = moment().startOf('day').subtract(1, 'day')
     const times = [1,2,3]
+
+    this.el.appendChild(leftContainer)
+    this.el.appendChild(rightContainer)
 
     times.forEach(n => {
       date.add(1, 'days')
@@ -129,7 +134,7 @@ class List {
         date: date
       }).build()
 
-      section.render()
+      section.render(leftContainer)
 
       this.sections.push(section)
       this.sectionById[section.id] = section
@@ -143,7 +148,10 @@ class List {
         list: this
       }).build()
 
-      section.render()
+      let container = leftContainer
+      if (SectionClass === OverdueSection) container = rightContainer
+      if (SectionClass === DoneSection) container = rightContainer
+      section.render(container)
 
       this.sections.push(section)
       this.sectionById[section.id] = section
@@ -301,8 +309,7 @@ class Section {
 
   }
 
-  render() {
-    const parent = this.list.el
+  render(parent) {
     parent.appendChild(this.el)
   }
 

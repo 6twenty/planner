@@ -50,7 +50,20 @@ main {
   background: #77aaff;
 }
 
-main::after {
+main > div {
+  float: left;
+}
+
+main > div:first-of-type {
+  width: calc((100vw / 4) * 3);
+}
+
+main > div:last-of-type {
+  width: calc(100vw / 4);
+}
+
+main::after,
+main > div::after {
   content: '';
   display: block;
   clear: left;
@@ -253,6 +266,11 @@ main .item a {
 /* Tablets */
 
 @media (max-width: 1024px), (max-height: 512px) {
+
+  main > div {
+    float: none;
+    width: 100vw;
+  }
 
   main section {
     float: none;
