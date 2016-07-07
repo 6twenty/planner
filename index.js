@@ -22,7 +22,7 @@ class App {
   }
 
   static escapeRegex(string) {
-    return string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    return string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
   }
 
   // Examples:
@@ -60,7 +60,7 @@ class App {
 
       const char = String.fromCharCode(e.which)
 
-      if (!char) return;
+      if (!char) return
 
       this.filtered += char
     })
@@ -276,7 +276,7 @@ class Section {
     this.listEl = list
 
     this.el.addEventListener('dblclick', e => {
-      if (e.target !== this.listEl && e.target.nodeName !== 'HEADER') return;
+      if (e.target !== this.listEl && e.target.nodeName !== 'HEADER') return
 
       const first = e.target !== this.listEl
 
@@ -284,6 +284,14 @@ class Section {
         edit: true,
         first: first
       })
+    })
+
+    header.addEventListener('click', e => {
+      if (e.target !== header) return
+
+      const active = this.list.el.querySelector('section.active')
+      active.classList.remove('active')
+      this.el.classList.add('active')
     })
 
     return this
@@ -315,7 +323,9 @@ class DaySection extends Section {
   constructor(opts) {
     const date = opts.date
     const today = moment().startOf('day')
+    const tomorrow = moment().startOf('day').add(1, 'day')
     const isToday = date.isSame(today)
+    const isTomorrow = date.isSame(tomorrow)
     const isSaturday = date.day() === 6
 
     opts.id = date.format('YYYY-MM-DD')
@@ -324,12 +334,14 @@ class DaySection extends Section {
 
     this.title = date.format('dddd')
 
+    if (isToday) this.classes.push('today', 'active')
+    if (isTomorrow) this.classes.push('tomorrow')
+    if (isSaturday) this.classes.push('weekend')
+
     if (isToday) {
       this.title = 'Today'
-      this.classes.push('today')
     } else if (isSaturday) {
       this.title = 'Weekend'
-      this.classes.push('weekend')
     }
   }
 
@@ -585,12 +597,12 @@ class Item {
 
   focus() {
     this.el.focus()
-    const range = document.createRange();
-    range.selectNodeContents(this.el);
-    range.collapse(false);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
+    const range = document.createRange()
+    range.selectNodeContents(this.el)
+    range.collapse(false)
+    const sel = window.getSelection()
+    sel.removeAllRanges()
+    sel.addRange(range)
   }
 
   onDblClick(e) {
