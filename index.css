@@ -71,7 +71,6 @@ main > div::after {
 
 main section {
   float: left;
-  padding-top: 5rem;
   position: relative;
   height: 50vh;
   width: 25vw;
@@ -276,6 +275,7 @@ main .item a {
     float: none;
     height: auto;
     width: 50vw;
+    height: 12.5vh;
   }
 
   main section.overdue,
@@ -288,12 +288,12 @@ main .item a {
 
   main section,
   main section header {
-    height: calc(100vh / 8);
+    height: 12.5vh;
     min-height: 5rem;
   }
 
   main section header {
-    padding: calc(((100vh / 8) - 5rem) / 2) 0;
+    padding: calc((12.5vh - 5rem) / 2) 0;
     background: transparent;
   }
 
@@ -308,12 +308,15 @@ main .item a {
     position: fixed;
     display: none;
     background: inherit;
-    border-left: solid .5rem rgba(0,0,0,.5);
   }
 
   /* TODO */
   main section button {
     display: none;
+  }
+
+  main section header {
+    border-right: solid .5rem rgba(0,0,0,.5);
   }
 
   main section.active header::after {
@@ -338,6 +341,39 @@ main .item a {
 
   main .item {
     padding: 1rem 2rem 1rem 1.5rem;
+  }
+
+}
+
+/* Mobile */
+
+@media (max-width: 512px) {
+
+  main section {
+    width: 100vw;
+  }
+
+  main section header {
+    border: none;
+  }
+
+  main section.active header::after {
+    display: none;
+  }
+
+  main section.active {
+    height: 100vh;
+  }
+
+  main section.active header {
+    background: rgba(0,0,0,.1);
+  }
+
+  main section.active .list {
+    left: 0;
+    top: 12.5vh;
+    right: 0;
+    bottom: 0;
   }
 
 }
