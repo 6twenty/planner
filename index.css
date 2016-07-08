@@ -331,11 +331,25 @@ main .item a {
     position: fixed;
     display: none;
     background: inherit;
+    left: 50vw;
+    top: 0;
+    right: 0;
+    bottom: 0;
   }
 
-  /* TODO */
+  main section.done .list {
+    bottom: 0;
+  }
+
   main section button.clear {
+    position: fixed;
     display: none;
+    left: 50vw;
+    right: 0;
+    bottom: 0;
+    width: 50vw;
+    line-height: 6rem;
+    height: 6rem;
   }
 
   main section header {
@@ -372,10 +386,18 @@ main .item a {
   main[data-active="#overdue"] section[data-section-id="overdue"] .list,
   main[data-active="#done"] section[data-section-id="done"] .list {
     display: block;
-    left: 50vw;
-    top: 0;
-    right: 0;
-    bottom: 0;
+  }
+
+  main[data-active=""] > div:first-of-type > section:first-of-type button.clear,
+  main[data-active="#today"] section[data-section-id="today"] button.clear,
+  main[data-active="#tomorrow"] section[data-section-id="tomorrow"] button.clear,
+  main[data-active="#day-after-tomorrow"] section[data-section-id="day-after-tomorrow"] button.clear,
+  main[data-active="#week"] section[data-section-id="week"] button.clear,
+  main[data-active="#month"] section[data-section-id="month"] button.clear,
+  main[data-active="#backlog"] section[data-section-id="backlog"] button.clear,
+  main[data-active="#overdue"] section[data-section-id="overdue"] button.clear,
+  main[data-active="#done"] section[data-section-id="done"] button.clear {
+    display: block;
   }
 
   main .item {
@@ -405,16 +427,18 @@ main .item a {
     display: none !important;
   }
 
+  main section button.clear {
+    display: none;
+    left: 0;
+  }
+
   main[data-active=""] > div:first-of-type > section:first-of-type {
     height: 12.5vh;
   }
 
   main[data-active^="#"] section {
     display: none;
-  }
-
-  main[data-active^="#"] section .list {
-    background: transparent;
+    height: 100vh;
   }
 
   main[data-active="#today"] section[data-section-id="today"],
@@ -426,19 +450,22 @@ main .item a {
   main[data-active="#overdue"] section[data-section-id="overdue"],
   main[data-active="#done"] section[data-section-id="done"] {
     display: block;
-    height: 100vh;
   }
 
-  main[data-active="#today"] section[data-section-id="today"] header,
-  main[data-active="#tomorrow"] section[data-section-id="tomorrow"] header,
-  main[data-active="#day-after-tomorrow"] section[data-section-id="day-after-tomorrow"] header,
-  main[data-active="#week"] section[data-section-id="week"] header,
-  main[data-active="#month"] section[data-section-id="month"] header,
-  main[data-active="#backlog"] section[data-section-id="backlog"] header,
-  main[data-active="#overdue"] section[data-section-id="overdue"] header,
-  main[data-active="#done"] section[data-section-id="done"] header {
+  main[data-active^="#"] section header {
     background: rgba(0,0,0,.1);
     border-bottom: solid .25rem rgba(0,0,0,.25);
+  }
+
+  main[data-active^="#"] section .list {
+    background: transparent;
+    left: 0;
+    top: 12.5vh;
+  }
+
+  main[data-active^="#"] section button.clear {
+    display: block;
+    width: 100%;
   }
 
   main[data-active^="#"] section button.back {
@@ -455,20 +482,6 @@ main .item a {
 
   main[data-active=""] > div:first-of-type > section:first-of-type .list {
     display: none;
-  }
-
-  main[data-active="#today"] section[data-section-id="today"] .list,
-  main[data-active="#tomorrow"] section[data-section-id="tomorrow"] .list,
-  main[data-active="#day-after-tomorrow"] section[data-section-id="day-after-tomorrow"] .list,
-  main[data-active="#week"] section[data-section-id="week"] .list,
-  main[data-active="#month"] section[data-section-id="month"] .list,
-  main[data-active="#backlog"] section[data-section-id="backlog"] .list,
-  main[data-active="#overdue"] section[data-section-id="overdue"] .list,
-  main[data-active="#done"] section[data-section-id="done"] .list {
-    left: 0;
-    top: 12.5vh;
-    right: 0;
-    bottom: 0;
   }
 
 }
