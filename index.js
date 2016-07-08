@@ -146,7 +146,7 @@ class List {
     })
 
 
-    const sectionClasses = [ OverdueSection, WeekSection, MonthSection, BacklogSection, DoneSection ]
+    const sectionClasses = [ WeekSection, MonthSection, BacklogSection, OverdueSection, DoneSection ]
 
     sectionClasses.forEach(SectionClass => {
       const section = new SectionClass({
