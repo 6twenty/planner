@@ -116,7 +116,7 @@ class List {
     const leftContainer = document.createElement('div')
     const rightContainer = document.createElement('div')
     const date = moment().startOf('day').subtract(1, 'day')
-    const times = [1,2,3]
+    const days = ['today', 'tomorrow', 'day-after-tomorrow']
 
     // Sundays are skipped, so if today is Sunday, pretend it's Saturday
     if (moment().day() === 0) date.subtract(1, 'day')
@@ -124,7 +124,7 @@ class List {
     this.el.appendChild(leftContainer)
     this.el.appendChild(rightContainer)
 
-    times.forEach(n => {
+    days.forEach(day => {
       date.add(1, 'days')
 
       if (date.day() === 0) {
@@ -134,7 +134,8 @@ class List {
 
       const section = new DaySection({
         list: this,
-        date: date
+        date: date,
+        day: day
       }).build()
 
       section.render(leftContainer)
@@ -333,9 +334,7 @@ class DaySection extends Section {
   constructor(opts) {
     const date = opts.date
     const today = moment().startOf('day')
-    const tomorrow = moment().startOf('day').add(1, 'day')
     const isToday = date.isSame(today)
-    const isTomorrow = date.isSame(tomorrow)
     const isSaturday = date.day() === 6
 
     opts.id = date.format('YYYY-MM-DD')
@@ -344,8 +343,7 @@ class DaySection extends Section {
 
     this.title = date.format('dddd')
 
-    if (isToday) this.classes.push('today', 'active')
-    if (isTomorrow) this.classes.push('tomorrow')
+    this.classes.push(opts.day)
     if (isSaturday) this.classes.push('weekend')
 
     if (isToday) {
