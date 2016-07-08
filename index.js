@@ -272,6 +272,7 @@ class Section {
   build() {
     const section = document.createElement('section')
     const header = document.createElement('header')
+    const back = document.createElement('button')
     const list = document.createElement('div')
     section.appendChild(header)
     section.appendChild(list)
@@ -285,7 +286,9 @@ class Section {
     const emoji = this.emoji()
     if (emoji) header.dataset.emoji = emoji
     header.innerText = this.title
+    back.classList.add('back')
     list.classList.add('list')
+    header.appendChild(back)
 
     this.el = section
     this.listEl = list
@@ -305,6 +308,12 @@ class Section {
       if (e.target !== header) return
 
       this.list.el.dataset.active = `#${this.sectionId}`
+    })
+
+    back.addEventListener('click', e => {
+      if (e.target !== back) return
+
+      this.list.el.dataset.active = ''
     })
 
     return this
@@ -427,6 +436,7 @@ class DoneSection extends Section {
 
     const button = document.createElement('button')
 
+    button.classList.add('clear')
     button.innerText ='Clear'
     this.el.appendChild(button)
 

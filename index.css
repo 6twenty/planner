@@ -115,29 +115,41 @@ main section.done .list {
 }
 
 main section button {
+  border-radius: 0;
+  border: none;
+  text-align: center;
+  color: inherit;
+  font-size: inherit;
+  outline: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+main section button.back {
+  display: none;
+}
+
+main section button.back::before {
+  content: '⌃';
+}
+
+main section button.clear {
   display: block;
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   width: 100%;
-  padding: 0;
-  margin: 0;
-  border-radius: 0;
   background: rgba(0,0,0,.1);
-  border: none;
-  text-align: center;
   text-transform: uppercase;
-  color: inherit;
-  font-size: inherit;
   line-height: 4rem;
   height: 4rem;
   cursor: pointer;
-  outline: 0;
   z-index: 2;
 }
 
-main section button:hover {
+main section button.clear:hover {
   background: rgba(0,0,0,.2);
 }
 
@@ -316,7 +328,7 @@ main .item a {
   }
 
   /* TODO */
-  main section button {
+  main section button.clear {
     display: none;
   }
 
@@ -421,6 +433,18 @@ main .item a {
   main[data-active="#done"] section[data-section-id="done"] header {
     background: rgba(0,0,0,.1);
     border-bottom: solid .25rem rgba(0,0,0,.25);
+  }
+
+  main[data-active^="#"] section button.back {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 1.5rem;
+    height: 4rem;
+    width: 4rem;
+    line-height: 4rem;
+    font-size: 3rem;
+    transform: translateY(-50%) rotate(-90deg);
   }
 
   main[data-active=""] > div:first-of-type > section:first-of-type .list {
