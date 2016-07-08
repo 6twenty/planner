@@ -393,6 +393,10 @@ main .item a {
     display: none;
   }
 
+  main[data-active^="#"] section .list {
+    background: transparent;
+  }
+
   main[data-active="#today"] section[data-section-id="today"],
   main[data-active="#tomorrow"] section[data-section-id="tomorrow"],
   main[data-active="#day-after-tomorrow"] section[data-section-id="day-after-tomorrow"],
@@ -405,7 +409,14 @@ main .item a {
     height: 100vh;
   }
 
-  main section.active header {
+  main[data-active="#today"] section[data-section-id="today"] header,
+  main[data-active="#tomorrow"] section[data-section-id="tomorrow"] header,
+  main[data-active="#day-after-tomorrow"] section[data-section-id="day-after-tomorrow"] header,
+  main[data-active="#week"] section[data-section-id="week"] header,
+  main[data-active="#month"] section[data-section-id="month"] header,
+  main[data-active="#backlog"] section[data-section-id="backlog"] header,
+  main[data-active="#overdue"] section[data-section-id="overdue"] header,
+  main[data-active="#done"] section[data-section-id="done"] header {
     background: rgba(0,0,0,.1);
   }
 
