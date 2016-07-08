@@ -304,7 +304,7 @@ class Section {
     header.addEventListener('click', e => {
       if (e.target !== header) return
 
-      this.list.el.dataset.active = this.sectionId
+      this.list.el.dataset.active = `#${this.sectionId}`
     })
 
     return this
