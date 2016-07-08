@@ -558,6 +558,20 @@ class Item {
     el.dataset.id = this.id
     el.innerHTML = marked(this.content)
 
+    el.addEventListener('paste', e => {
+      e.stopPropagation()
+      e.preventDefault()
+
+      const clipboardData = e.clipboardData || window.clipboardData
+      const pastedData = clipboardData.getData('Text')
+      const selection = window.getSelection()
+      const range = selection.getRangeAt(0)
+
+      range.deleteContents()
+      range.insertNode(document.createTextNode(pastedData))
+      this.focus()
+    })
+
     this.el = el
 
     if (this.editing) {
@@ -645,9 +659,9 @@ class Item {
     const range = document.createRange()
     range.selectNodeContents(this.el)
     range.collapse(false)
-    const sel = window.getSelection()
-    sel.removeAllRanges()
-    sel.addRange(range)
+    const selection = window.getSelection()
+    selection.removeAllRanges()
+    selection.addRange(range)
   }
 
   onDblClick(e) {
