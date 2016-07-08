@@ -85,6 +85,7 @@ main section header {
   line-height: 5rem;
   height: 5rem;
   background: rgba(0,0,0,.1);
+  border-bottom: solid .25rem rgba(0,0,0,.05);
   position: absolute;
   top: 0;
   left: 0;
@@ -298,6 +299,7 @@ main .item a {
   main section header {
     padding: calc((12.5vh - 5rem) / 2) 0;
     background: transparent;
+    border-bottom: none;
   }
 
   main section.today { background: transparent; }
@@ -381,8 +383,8 @@ main .item a {
     border: none;
   }
 
-  main section.active header::after {
-    display: none;
+  main section header::after {
+    display: none !important;
   }
 
   main[data-active=""] > div:first-of-type > section:first-of-type {
@@ -418,6 +420,7 @@ main .item a {
   main[data-active="#overdue"] section[data-section-id="overdue"] header,
   main[data-active="#done"] section[data-section-id="done"] header {
     background: rgba(0,0,0,.1);
+    border-bottom: solid .25rem rgba(0,0,0,.25);
   }
 
   main[data-active=""] > div:first-of-type > section:first-of-type .list {
