@@ -98,6 +98,8 @@ main section header[data-emoji]::before {
   font-size: 3rem;
   margin-right: 1rem;
   vertical-align: middle;
+  position: absolute;
+  transform: translateX(calc(-100% - .5rem));
 }
 
 main section .list {
