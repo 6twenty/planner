@@ -118,6 +118,9 @@ class List {
     const date = moment().startOf('day').subtract(1, 'day')
     const times = [1,2,3]
 
+    // Sundays are skipped, so if today is Sunday, pretend it's Saturday
+    if (moment().day() === 0) date.subtract(1, 'day')
+
     this.el.appendChild(leftContainer)
     this.el.appendChild(rightContainer)
 
