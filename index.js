@@ -351,6 +351,7 @@ class DaySection extends Section {
     opts.name = 'day'
     super(opts)
 
+    this.date = date
     this.title = date.format('dddd')
 
     if (isSaturday) {
@@ -362,6 +363,25 @@ class DaySection extends Section {
     } else if (isSaturday) {
       this.title = 'Weekend'
     }
+  }
+
+  build() {
+    super.build()
+
+    const today = moment().startOf('day')
+    let day = this.date.format('dddd')
+
+    if (this.date.isSame(today)) {
+      day = 'today'
+    }
+
+    if (this.date.day() === 6) {
+      day = 'the weekend'
+    }
+
+    this.listEl.dataset.day = day
+
+    return this
   }
 
 }

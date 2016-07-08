@@ -195,6 +195,12 @@ main section .list:empty::after {
   display: block;
 }
 
+main section.today .list::after,
+main section.tomorrow .list::after,
+main section.day-after-tomorrow .list::after {
+  content: 'No items for ' attr(data-day) ' yet. Double-click to create a new item.';
+}
+
 main section.week .list::after {
   content: 'Items that you intend to complete this week, ' attr(data-dates) '. Items will move to Overdue if not completed by next week.';
 }
