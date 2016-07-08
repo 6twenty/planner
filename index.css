@@ -201,7 +201,7 @@ main section.overdue .list::after {
 }
 
 main .item {
-  background: rgba(0,0,0,.2);
+  background: rgba(0,0,0,.05);
   padding: 0 1rem 0 .5rem;
   border-left: solid .5rem transparent;
   outline: 0;
@@ -214,22 +214,25 @@ main section.done .item:not([contenteditable="true"]) {
   text-decoration: line-through;
 }
 
-main .item + .item { background: rgba(0,0,0,.25); }
-main .item + .item + .item { background: rgba(0,0,0,.3); }
-main .item + .item + .item + .item { background: rgba(0,0,0,.35); }
-main .item + .item + .item + .item + .item { background: rgba(0,0,0,.4); }
-main .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.45); }
-main .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.5); }
-main .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.55); }
-main .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.6); }
-main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.65); }
-main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.7); }
-main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.75); }
-main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.8); }
-main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.85); }
-main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.9); }
-main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.95); }
-main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,1); }
+main .item + .item { background: rgba(0,0,0,.1); }
+main .item + .item + .item { background: rgba(0,0,0,.15); }
+main .item + .item + .item + .item { background: rgba(0,0,0,.2); }
+main .item + .item + .item + .item + .item { background: rgba(0,0,0,.25); }
+main .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.3); }
+main .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.35); }
+main .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.4); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.45); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.5); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.55); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.6); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.65); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.7); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.75); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.8); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.85); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.9); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,.95); }
+main .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item + .item { background: rgba(0,0,0,1); }
 
 main .item:not([contenteditable="true"]) {
   cursor: -webkit-grab;
@@ -297,12 +300,12 @@ main .item a {
     background: transparent;
   }
 
-  main section.day { background: rgba(0,0,0,.2); }
+  main section.day { background: rgba(0,0,0,.1); }
   main section.today { background: transparent; }
-  main section.tomorrow { background: rgba(0,0,0,.1); }
-  main section.week { background: rgba(0,0,0,.3); }
-  main section.month { background: rgba(0,0,0,.4); }
-  main section.backlog { background: rgba(0,0,0,.5); }
+  main section.tomorrow { background: rgba(0,0,0,.05); }
+  main section.week { background: rgba(0,0,0,.15); }
+  main section.month { background: rgba(0,0,0,.2); }
+  main section.backlog { background: rgba(0,0,0,.25); }
 
   main section .list {
     position: fixed;
