@@ -282,6 +282,10 @@ main .item a {
 
 @media (max-width: 1024px), (max-height: 512px) {
 
+  html {
+    font-size: 70%;
+  }
+
   main > div {
     float: none;
     width: 100vw;
