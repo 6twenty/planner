@@ -121,6 +121,7 @@ class List {
     // Sundays are skipped, so if today is Sunday, pretend it's Saturday
     if (moment().day() === 0) date.subtract(1, 'day')
 
+    this.el.dataset.active = ''
     this.el.appendChild(leftContainer)
     this.el.appendChild(rightContainer)
 
@@ -135,7 +136,7 @@ class List {
       const section = new DaySection({
         list: this,
         date: date,
-        day: day
+        sectionId: day
       }).build()
 
       section.render(leftContainer)
@@ -264,7 +265,8 @@ class Section {
     this.list = opts.list
     this.name = opts.name
     this.title = opts.name
-    this.classes = [opts.name]
+    this.sectionId = opts.sectionId
+    this.classes = new Set([opts.name, opts.sectionId])
   }
 
   build() {
@@ -275,6 +277,7 @@ class Section {
     section.appendChild(list)
 
     section.dataset.id = this.id
+    section.dataset.sectionId = this.sectionId
     this.classes.forEach(className => {
       section.classList.add(className)
     })
@@ -301,9 +304,7 @@ class Section {
     header.addEventListener('click', e => {
       if (e.target !== header) return
 
-      const active = this.list.el.querySelector('section.active')
-      active.classList.remove('active')
-      this.el.classList.add('active')
+      this.list.el.dataset.active = this.sectionId
     })
 
     return this
@@ -343,8 +344,9 @@ class DaySection extends Section {
 
     this.title = date.format('dddd')
 
-    this.classes.push(opts.day)
-    if (isSaturday) this.classes.push('weekend')
+    if (isSaturday) {
+      this.classes.add('weekend')
+    }
 
     if (isToday) {
       this.title = 'Today'
@@ -363,6 +365,7 @@ class WeekSection extends Section {
 
     opts.id = `${dateStart.format('YYYY-MM-DD')}-${dateEnd.format('YYYY-MM-DD')}`
     opts.name = 'week'
+    opts.sectionId = 'week'
     super(opts)
 
     this.title = 'This week'
@@ -389,6 +392,7 @@ class MonthSection extends Section {
 
     opts.id = `${dateStart.format('YYYY-MM-DD')}-${dateEnd.format('YYYY-MM-DD')}`
     opts.name = 'month'
+    opts.sectionId = 'month'
     super(opts)
 
     this.title = 'This month'
@@ -410,6 +414,7 @@ class DoneSection extends Section {
 
   constructor(opts) {
     opts.name = 'done'
+    opts.sectionId = 'done'
     super(opts)
   }
 
@@ -447,6 +452,7 @@ class OverdueSection extends Section {
 
   constructor(opts) {
     opts.name = 'overdue'
+    opts.sectionId = 'overdue'
     super(opts)
   }
 
@@ -460,6 +466,7 @@ class BacklogSection extends Section {
 
   constructor(opts) {
     opts.name = 'backlog'
+    opts.sectionId = 'backlog'
     super(opts)
   }
 

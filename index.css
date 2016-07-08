@@ -319,7 +319,15 @@ main .item a {
     border-right: solid .5rem rgba(0,0,0,.5);
   }
 
-  main section.active header::after {
+  main[data-active=""] > div:first-of-type > section:first-of-type header::after,
+  main[data-active="today"] section[data-section-id="today"] header::after,
+  main[data-active="tomorrow"] section[data-section-id="tomorrow"] header::after,
+  main[data-active="day-after-tomorrow"] section[data-section-id="day-after-tomorrow"] header::after,
+  main[data-active="week"] section[data-section-id="week"] header::after,
+  main[data-active="month"] section[data-section-id="month"] header::after,
+  main[data-active="backlog"] section[data-section-id="backlog"] header::after,
+  main[data-active="overdue"] section[data-section-id="overdue"] header::after,
+  main[data-active="done"] section[data-section-id="done"] header::after {
     content: '';
     display: block;
     position: absolute;
@@ -331,7 +339,15 @@ main .item a {
     border-left: 0;
   }
 
-  main section.active .list {
+  main[data-active=""] > div:first-of-type > section:first-of-type .list,
+  main[data-active="today"] section[data-section-id="today"] .list,
+  main[data-active="tomorrow"] section[data-section-id="tomorrow"] .list,
+  main[data-active="day-after-tomorrow"] section[data-section-id="day-after-tomorrow"] .list,
+  main[data-active="week"] section[data-section-id="week"] .list,
+  main[data-active="month"] section[data-section-id="month"] .list,
+  main[data-active="backlog"] section[data-section-id="backlog"] .list,
+  main[data-active="overdue"] section[data-section-id="overdue"] .list,
+  main[data-active="done"] section[data-section-id="done"] .list {
     display: block;
     left: 50vw;
     top: 0;
