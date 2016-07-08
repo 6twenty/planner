@@ -359,6 +359,11 @@ main .item a {
     padding: 1rem 2rem 1rem 1.5rem;
   }
 
+  main .item[contenteditable="true"] {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
 }
 
 /* Mobile */
