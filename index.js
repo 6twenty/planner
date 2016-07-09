@@ -190,14 +190,20 @@ class List {
         return true
       },
       accepts: (el, target, source, sibling) => {
-        if (target.nodeName === 'HEADER') {
-          // Highlight the target header?
+        const section = this.sectionById[target.parentElement.dataset.id]
+        const active = section.list.el.querySelector('section.over')
 
+        if (active) {
+          active.classList.remove('over')
+        }
+
+        section.el.classList.add('over')
+        this.el.dataset.active = `#${section.sectionId}`
+
+        if (target.nodeName === 'HEADER') {
           if (target.parentElement === el.parentElement.parentElement) {
             return false
           }
-
-          const section = this.sectionById[target.parentElement.dataset.id]
 
           section.listEl.insertBefore(el, section.listEl.firstChild)
 
@@ -205,6 +211,18 @@ class List {
         }
 
         return true
+      }
+    })
+
+    drake.on('drag', (el) => {
+      el.parentElement.parentElement.classList.add('over')
+    })
+
+    drake.on('dragend', (el) => {
+      const active = this.el.querySelector('section.over')
+
+      if (active) {
+        active.classList.remove('over')
       }
     })
 

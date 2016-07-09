@@ -101,6 +101,10 @@ main section header[data-emoji]::before {
   transform: translateX(calc(-100% - .5rem));
 }
 
+main section.over header {
+  border-color: yellow;
+}
+
 main section .list {
   position: absolute;
   left: 0;
@@ -406,6 +410,10 @@ main .item.gu-mirror[data-section-type="done"] {
     border: solid 1rem transparent;
     border-right: solid 1rem rgba(0,0,0,.5);
     border-left: 0;
+  }
+
+  main section.over header::after {
+    border-right-color: yellow !important;
   }
 
   main[data-active=""] > div:first-of-type > section:first-of-type .list,
