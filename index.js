@@ -408,6 +408,11 @@ class DaySection extends Section {
   constructor(opts) {
     const date = opts.date
     const today = moment().startOf('day')
+
+    if (today.day() === 0) {
+      today.subtract(1, 'day')
+    }
+
     const isToday = date.isSame(today)
     const isSaturday = date.day() === 6
 
