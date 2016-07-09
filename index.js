@@ -186,6 +186,11 @@ class List {
       const section = this.sectionById[target.parentElement.dataset.id]
       item.section = section
     })
+
+    drake.on('cloned', (clone, original, type) => {
+      const color = getComputedStyle(original).backgroundColor
+      clone.style.boxShadow = `inset 0 0 0 50vw ${color}`
+    })
   }
 
   load() {
