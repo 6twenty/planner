@@ -422,7 +422,9 @@ class DaySection extends Section {
       this.classes.add('weekend')
     }
 
-    if (isToday) {
+    if (isToday && isSaturday) {
+      this.title = 'This weekend'
+    } else if (isToday) {
       this.title = 'Today'
     } else if (isSaturday) {
       this.title = 'Weekend'
