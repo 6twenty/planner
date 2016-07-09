@@ -191,6 +191,11 @@ class List {
       const color = getComputedStyle(original).backgroundColor
       clone.style.boxShadow = `inset 0 0 0 50vw ${color}`
     })
+
+    drake.on('shadow', (el, container, source) => {
+      const mirror = this.el.querySelector('.item.gu-mirror')
+      mirror.dataset.sectionType = container.parentElement.dataset.name
+    })
   }
 
   load() {
@@ -283,6 +288,7 @@ class Section {
     section.appendChild(list)
 
     section.dataset.id = this.id
+    section.dataset.name = this.name
     section.dataset.sectionId = this.sectionId
     this.classes.forEach(className => {
       section.classList.add(className)
