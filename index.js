@@ -169,14 +169,41 @@ class List {
   }
 
   dragula() {
-    const els = this.sections.map(section => { return section.listEl })
+    const lists = this.sections.map(section => { return section.listEl })
+    const headers = this.sections.map(section => { return section.header })
+    const els = [...lists, ...headers]
 
     const drake = dragula({
       containers: els,
       mirrorContainer: this.el,
       moves: (el, source, handle, sibling) => {
+        if (source.nodeName === 'HEADER') {
+          return false
+        }
+
         const item = this.items[el.dataset.id]
-        if (item.editing) return false
+
+        if (item.editing) {
+          return false
+        }
+
+        return true
+      },
+      accepts: (el, target, source, sibling) => {
+        if (target.nodeName === 'HEADER') {
+          // Highlight the target header?
+
+          if (target.parentElement === el.parentElement.parentElement) {
+            return false
+          }
+
+          const section = this.sectionById[target.parentElement.dataset.id]
+
+          section.listEl.insertBefore(el, section.listEl.firstChild)
+
+          return false
+        }
+
         return true
       }
     })
@@ -302,10 +329,11 @@ class Section {
     header.appendChild(back)
 
     this.el = section
+    this.header = header
     this.listEl = list
 
     this.el.addEventListener('dblclick', e => {
-      if (e.target !== this.listEl && e.target.nodeName !== 'HEADER') return
+      if (e.target !== this.listEl && e.target !== this.header) return
 
       const first = e.target !== this.listEl
 
