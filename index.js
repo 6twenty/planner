@@ -76,6 +76,12 @@ class App {
       if (e.which === 27) { // Esc
         e.preventDefault()
         this.filtered = ''
+        if (this.list.drake.dragging) {
+          this.list.drake.cancel(true)
+          if (this.list.originalSectionId) {
+            this.list.el.dataset.active = `#${this.list.originalSectionId}`
+          }
+        }
       }
 
       if (e.which === 8) { // Backspace
@@ -173,7 +179,7 @@ class List {
     const headers = this.sections.map(section => { return section.header })
     const els = [...lists, ...headers]
 
-    const drake = dragula({
+    this.drake = dragula({
       containers: els,
       mirrorContainer: this.el,
       moves: (el, source, handle, sibling) => {
@@ -214,11 +220,12 @@ class List {
       }
     })
 
-    drake.on('drag', (el) => {
+    this.drake.on('drag', (el) => {
+      this.originalSectionId = el.parentElement.parentElement.dataset.sectionId
       el.parentElement.parentElement.classList.add('over')
     })
 
-    drake.on('dragend', (el) => {
+    this.drake.on('dragend', (el) => {
       const active = this.el.querySelector('section.over')
 
       if (active) {
@@ -226,18 +233,18 @@ class List {
       }
     })
 
-    drake.on('drop', (el, target, source, sibling) => {
+    this.drake.on('drop', (el, target, source, sibling) => {
       const item = this.items[el.dataset.id]
       const section = this.sectionById[target.parentElement.dataset.id]
       item.section = section
     })
 
-    drake.on('cloned', (clone, original, type) => {
+    this.drake.on('cloned', (clone, original, type) => {
       const color = getComputedStyle(original).backgroundColor
       clone.style.boxShadow = `inset 0 0 0 50vw ${color}`
     })
 
-    drake.on('shadow', (el, container, source) => {
+    this.drake.on('shadow', (el, container, source) => {
       const mirror = this.el.querySelector('.item.gu-mirror')
       mirror.dataset.sectionType = container.parentElement.dataset.name
     })
