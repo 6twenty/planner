@@ -290,6 +290,18 @@ main .item a {
   color: yellow;
 }
 
+main .item.gu-mirror {
+  background: #77aaff;
+}
+
+main .item.gu-mirror[data-section-type="overdue"] {
+  background: #ca7449;
+}
+
+main .item.gu-mirror[data-section-type="done"] {
+  background: #66aa66;
+}
+
 /* Tablets */
 
 @media (max-width: 1024px), (max-height: 512px) {

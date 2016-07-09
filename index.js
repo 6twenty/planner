@@ -514,7 +514,7 @@ class Item {
 
     this.onDblClick = this.onDblClick.bind(this)
     this.onKeydown = this.onKeydown.bind(this)
-    this.onBlur =this.onBlur.bind(this)
+    this.onBlur = this.onBlur.bind(this)
   }
 
   get editing () {
@@ -532,6 +532,7 @@ class Item {
 
   set section(value) {
     this._section = value
+    this.el.dataset.sectionId = value.name
     this.list.save()
   }
 
@@ -555,6 +556,7 @@ class Item {
     const el = document.createElement('article')
 
     el.classList.add('item')
+    el.dataset.sectionType = this.section.name
     el.dataset.id = this.id
     el.innerHTML = marked(this.content)
 
