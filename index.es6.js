@@ -6,6 +6,7 @@ class App {
     this.editing = false
     this._filtered = ''
 
+    this.hammer()
     this.build()
     this.observe()
 
@@ -46,6 +47,14 @@ class App {
   build() {
     this.aside = document.createElement('aside')
     this.el.appendChild(this.aside)
+  }
+
+  hammer() {
+    this.hammer = new Hammer.Manager(this.el, { domEvents: true })
+
+    const tap = new Hammer.Tap({ event: 'doubletap', taps: 2 })
+
+    this.hammer.add(tap)
   }
 
   observe() {
@@ -357,7 +366,7 @@ class Section {
     this.header = header
     this.listEl = list
 
-    this.el.addEventListener('dblclick', e => {
+    this.el.addEventListener('doubletap', e => {
       if (e.target !== this.listEl && e.target !== this.header) return
 
       const first = e.target !== this.listEl
@@ -698,7 +707,7 @@ class Item {
       this.el.focus()
     }
 
-    this.el.removeEventListener('dblclick', this.onDblClick)
+    this.el.removeEventListener('doubletap', this.onDblClick)
     this.el.addEventListener('keydown', this.onKeydown)
     this.el.addEventListener('blur', this.onBlur)
   }
@@ -724,7 +733,7 @@ class Item {
   }
 
   awaitEditing() {
-    this.el.addEventListener('dblclick', this.onDblClick)
+    this.el.addEventListener('doubletap', this.onDblClick)
   }
 
   focus() {

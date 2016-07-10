@@ -200,12 +200,12 @@ main section .list:empty::after {
 }
 
 main section.today .list::after {
-  content: 'No items for ' attr(data-day) ' yet. Double-click to create a new item. Items will be moved to Overdue if not completed by tomorrow.';
+  content: 'No items for ' attr(data-day) ' yet. Double-click/tap to create a new item. Items will be moved to Overdue if not completed by tomorrow.';
 }
 
 main section.tomorrow .list::after,
 main section.day-after-tomorrow .list::after {
-  content: 'No items for ' attr(data-day) ' yet. Double-click to create a new item.';
+  content: 'No items for ' attr(data-day) ' yet. Double-click/tap to create a new item.';
 }
 
 main section.week .list::after {
@@ -217,7 +217,7 @@ main section.month .list::after {
 }
 
 main section.backlog .list::after {
-  content: 'Double-click to create a new item, then drag it to an appropriate list. Double-click an item again to edit.';
+  content: 'Double-click/tap to create a new item, then drag it to an appropriate list. Double-click/tap an item again to edit.';
 }
 
 main section.done .list::after {
@@ -283,6 +283,9 @@ main .item[contenteditable="true"] {
   cursor: text;
   padding-top: .5rem;
   padding-bottom: .5rem;
+
+  -webkit-user-select: text;
+          user-select: text;
 }
 
 main .item p {

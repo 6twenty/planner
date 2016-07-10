@@ -19,6 +19,7 @@
     "babel-cli": "^6.10.1",
     "babel-preset-es2015": "^6.9.0",
     "dragula": "^3.7.1",
+    "hammerjs": "^2.0.8",
     "marked": "^0.3.5",
     "moment": "^2.13.0"
   }

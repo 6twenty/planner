@@ -22,6 +22,7 @@ var App = function () {
     this.editing = false;
     this._filtered = '';
 
+    this.hammer();
     this.build();
     this.observe();
 
@@ -37,6 +38,15 @@ var App = function () {
     value: function build() {
       this.aside = document.createElement('aside');
       this.el.appendChild(this.aside);
+    }
+  }, {
+    key: 'hammer',
+    value: function hammer() {
+      this.hammer = new Hammer.Manager(this.el, { domEvents: true });
+
+      var tap = new Hammer.Tap({ event: 'doubletap', taps: 2 });
+
+      this.hammer.add(tap);
     }
   }, {
     key: 'observe',
@@ -434,7 +444,7 @@ var Section = function () {
       this.header = header;
       this.listEl = list;
 
-      this.el.addEventListener('dblclick', function (e) {
+      this.el.addEventListener('doubletap', function (e) {
         if (e.target !== _this7.listEl && e.target !== _this7.header) return;
 
         var first = e.target !== _this7.listEl;
@@ -815,7 +825,7 @@ var Item = function () {
         this.el.focus();
       }
 
-      this.el.removeEventListener('dblclick', this.onDblClick);
+      this.el.removeEventListener('doubletap', this.onDblClick);
       this.el.addEventListener('keydown', this.onKeydown);
       this.el.addEventListener('blur', this.onBlur);
     }
@@ -844,7 +854,7 @@ var Item = function () {
   }, {
     key: 'awaitEditing',
     value: function awaitEditing() {
-      this.el.addEventListener('dblclick', this.onDblClick);
+      this.el.addEventListener('doubletap', this.onDblClick);
     }
   }, {
     key: 'focus',
