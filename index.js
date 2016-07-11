@@ -164,8 +164,6 @@ var List = function () {
       this.sections = []; // Ordered, for rendering sequentially
       this.sectionById = {}; // For easy lookup
 
-      var leftContainer = document.createElement('div');
-      var rightContainer = document.createElement('div');
       var date = moment().startOf('day').subtract(1, 'day');
       var days = ['today', 'tomorrow', 'day-after-tomorrow'];
 
@@ -173,8 +171,6 @@ var List = function () {
       if (moment().day() === 0) date.subtract(1, 'day');
 
       this.el.dataset.active = '';
-      this.el.appendChild(leftContainer);
-      this.el.appendChild(rightContainer);
 
       days.forEach(function (day) {
         date.add(1, 'days');
@@ -190,7 +186,7 @@ var List = function () {
           sectionId: day
         }).build();
 
-        section.render(leftContainer);
+        section.render(_this2.el);
 
         _this2.sections.push(section);
         _this2.sectionById[section.id] = section;
@@ -203,10 +199,7 @@ var List = function () {
           list: _this2
         }).build();
 
-        var container = leftContainer;
-        if (SectionClass === OverdueSection) container = rightContainer;
-        if (SectionClass === DoneSection) container = rightContainer;
-        section.render(container);
+        section.render(_this2.el);
 
         _this2.sections.push(section);
         _this2.sectionById[section.id] = section;

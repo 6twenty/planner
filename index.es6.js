@@ -128,8 +128,6 @@ class List {
     this.sections = [] // Ordered, for rendering sequentially
     this.sectionById = {} // For easy lookup
 
-    const leftContainer = document.createElement('div')
-    const rightContainer = document.createElement('div')
     const date = moment().startOf('day').subtract(1, 'day')
     const days = ['today', 'tomorrow', 'day-after-tomorrow']
 
@@ -137,8 +135,6 @@ class List {
     if (moment().day() === 0) date.subtract(1, 'day')
 
     this.el.dataset.active = ''
-    this.el.appendChild(leftContainer)
-    this.el.appendChild(rightContainer)
 
     days.forEach(day => {
       date.add(1, 'days')
@@ -154,7 +150,7 @@ class List {
         sectionId: day
       }).build()
 
-      section.render(leftContainer)
+      section.render(this.el)
 
       this.sections.push(section)
       this.sectionById[section.id] = section
@@ -168,10 +164,7 @@ class List {
         list: this
       }).build()
 
-      let container = leftContainer
-      if (SectionClass === OverdueSection) container = rightContainer
-      if (SectionClass === DoneSection) container = rightContainer
-      section.render(container)
+      section.render(this.el)
 
       this.sections.push(section)
       this.sectionById[section.id] = section
