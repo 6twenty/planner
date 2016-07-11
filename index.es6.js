@@ -26,6 +26,18 @@ class App {
     return string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&")
   }
 
+  static markdown(string) {
+    const tags = string.match(/\S*#(?:\[[^\]]+\]|\S+)/g)
+
+    if (tags) {
+      tags.forEach(tag => {
+        string = string.replace(tag, `<span class="tag">${tag}</span>`)
+      })
+    }
+
+    return marked(string)
+  }
+
   // Examples:
   // - January 12 - 19
   // - January 12 - February 3
@@ -631,7 +643,7 @@ class Item {
     el.classList.add('item')
     el.dataset.sectionType = this.section.name
     el.dataset.id = this.id
-    el.innerHTML = marked(this.content)
+    el.innerHTML = App.markdown(this.content)
 
     el.addEventListener('paste', e => {
       e.stopPropagation()
@@ -709,7 +721,7 @@ class Item {
     this.editing = false
     this.content = this.el.innerText
     this.el.contentEditable = 'false'
-    this.el.innerHTML = marked(this.content)
+    this.el.innerHTML = App.markdown(this.content)
     this.el.removeEventListener('keydown', this.onKeydown)
     this.el.removeEventListener('blur', this.onBlur)
 

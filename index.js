@@ -116,6 +116,19 @@ var App = function () {
     value: function escapeRegex(string) {
       return string.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
     }
+  }, {
+    key: 'markdown',
+    value: function markdown(string) {
+      var tags = string.match(/\S*#(?:\[[^\]]+\]|\S+)/g);
+
+      if (tags) {
+        tags.forEach(function (tag) {
+          string = string.replace(tag, '<span class="tag">' + tag + '</span>');
+        });
+      }
+
+      return marked(string);
+    }
 
     // Examples:
     // - January 12 - 19
@@ -743,7 +756,7 @@ var Item = function () {
       el.classList.add('item');
       el.dataset.sectionType = this.section.name;
       el.dataset.id = this.id;
-      el.innerHTML = marked(this.content);
+      el.innerHTML = App.markdown(this.content);
 
       el.addEventListener('paste', function (e) {
         e.stopPropagation();
@@ -828,7 +841,7 @@ var Item = function () {
       this.editing = false;
       this.content = this.el.innerText;
       this.el.contentEditable = 'false';
-      this.el.innerHTML = marked(this.content);
+      this.el.innerHTML = App.markdown(this.content);
       this.el.removeEventListener('keydown', this.onKeydown);
       this.el.removeEventListener('blur', this.onBlur);
 

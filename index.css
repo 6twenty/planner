@@ -233,6 +233,14 @@ main .item {
   z-index: 1;
 }
 
+main .item .tag {
+  position: relative;
+  display: inline-block;
+  background: rgba(0,0,0,.1);
+  border-radius: .25rem;
+  padding: 0 .25rem;
+}
+
 main section.done .item:not([contenteditable="true"]) {
   text-decoration: line-through;
 }
