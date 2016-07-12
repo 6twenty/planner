@@ -303,6 +303,17 @@ main .item a {
   color: yellow;
 }
 
+main .item.gu-transit {
+  opacity: .2;
+}
+
+main .item.enlarge,
+main .item.gu-mirror {
+  transform: scale(1.1);
+  transform-origin: 0 0;
+  opacity: .8;
+}
+
 main .item.gu-mirror {
   background: #77aaff;
 }
@@ -553,7 +564,6 @@ main .item.gu-mirror[data-section-type="done"] {
   position: fixed !important;
   margin: 0 !important;
   z-index: 9999 !important;
-  opacity: 0.8;
 }
 
 .gu-hide {
@@ -565,8 +575,4 @@ main .item.gu-mirror[data-section-type="done"] {
   -moz-user-select: none !important;
   -ms-user-select: none !important;
   user-select: none !important;
-}
-
-.gu-transit {
-  opacity: 0.2;
 }

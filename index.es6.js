@@ -262,6 +262,8 @@ class List {
     this.drake.on('cloned', (clone, original, type) => {
       const color = getComputedStyle(original).backgroundColor
       clone.style.boxShadow = `inset 0 0 0 50vw ${color}`
+      clone.classList.remove('enlarge')
+      original.classList.remove('enlarge')
     })
 
     this.drake.on('shadow', (el, container, source) => {
@@ -672,6 +674,7 @@ class Item {
 
       this._timer = setTimeout(() => {
         this._allowDrag = App.canDrag = true
+        this.el.classList.add('enlarge')
         this.el.dispatchEvent(e)
         delete this._allowDrag
       }, 500)
@@ -679,6 +682,14 @@ class Item {
 
     el.addEventListener('touchmove', e => {
       clearTimeout(this._timer)
+    })
+
+    el.addEventListener('touchend', e => {
+      this.el.classList.remove('enlarge')
+    })
+
+    el.addEventListener('touchcancel', e => {
+      this.el.classList.remove('enlarge')
     })
 
     el.addEventListener('mousedown', e => {

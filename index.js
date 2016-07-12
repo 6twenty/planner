@@ -315,6 +315,8 @@ var List = function () {
       this.drake.on('cloned', function (clone, original, type) {
         var color = getComputedStyle(original).backgroundColor;
         clone.style.boxShadow = 'inset 0 0 0 50vw ' + color;
+        clone.classList.remove('enlarge');
+        original.classList.remove('enlarge');
       });
 
       this.drake.on('shadow', function (el, container, source) {
@@ -785,6 +787,7 @@ var Item = function () {
 
         _this16._timer = setTimeout(function () {
           _this16._allowDrag = App.canDrag = true;
+          _this16.el.classList.add('enlarge');
           _this16.el.dispatchEvent(e);
           delete _this16._allowDrag;
         }, 500);
@@ -792,6 +795,14 @@ var Item = function () {
 
       el.addEventListener('touchmove', function (e) {
         clearTimeout(_this16._timer);
+      });
+
+      el.addEventListener('touchend', function (e) {
+        _this16.el.classList.remove('enlarge');
+      });
+
+      el.addEventListener('touchcancel', function (e) {
+        _this16.el.classList.remove('enlarge');
       });
 
       el.addEventListener('mousedown', function (e) {
