@@ -234,11 +234,17 @@ main .item {
 }
 
 main .item .tag {
-  position: relative;
   display: inline-block;
   background: rgba(0,0,0,.1);
   border-radius: .25rem;
   padding: 0 .5rem;
+}
+
+main section.done .item .tag {
+  display: inline;
+  background: none;
+  padding: 0;
+  border-radius: 0;
 }
 
 main section.done .item:not([contenteditable="true"]) {
