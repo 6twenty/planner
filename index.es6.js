@@ -203,6 +203,10 @@ class List {
           return false
         }
 
+        if (!App.canDrag) {
+          return false
+        }
+
         const item = this.items[el.dataset.id]
 
         if (item.editing) {
@@ -661,6 +665,26 @@ class Item {
       this.focus()
     })
 
+    el.addEventListener('touchstart', e => {
+      if ('_allowDrag' in this) return
+
+      App.canDrag = false
+
+      this._timer = setTimeout(() => {
+        this._allowDrag = App.canDrag = true
+        this.el.dispatchEvent(e)
+        delete this._allowDrag
+      }, 500)
+    })
+
+    el.addEventListener('touchmove', e => {
+      clearTimeout(this._timer)
+    })
+
+    el.addEventListener('mousedown', e => {
+      App.canDrag = true
+    })
+
     this.el = el
 
     if (this.editing) {
@@ -767,5 +791,7 @@ class Item {
   }
 
 }
+
+App.canDrag = true
 
 const app = new App()

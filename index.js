@@ -256,6 +256,10 @@ var List = function () {
             return false;
           }
 
+          if (!App.canDrag) {
+            return false;
+          }
+
           var item = _this3.items[el.dataset.id];
 
           if (item.editing) {
@@ -774,6 +778,26 @@ var Item = function () {
         _this16.focus();
       });
 
+      el.addEventListener('touchstart', function (e) {
+        if ('_allowDrag' in _this16) return;
+
+        App.canDrag = false;
+
+        _this16._timer = setTimeout(function () {
+          _this16._allowDrag = App.canDrag = true;
+          _this16.el.dispatchEvent(e);
+          delete _this16._allowDrag;
+        }, 500);
+      });
+
+      el.addEventListener('touchmove', function (e) {
+        clearTimeout(_this16._timer);
+      });
+
+      el.addEventListener('mousedown', function (e) {
+        App.canDrag = true;
+      });
+
       this.el = el;
 
       if (this.editing) {
@@ -923,5 +947,7 @@ var Item = function () {
 
   return Item;
 }();
+
+App.canDrag = true;
 
 var app = new App();
