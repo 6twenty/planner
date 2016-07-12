@@ -962,3 +962,5 @@ var Item = function () {
 App.canDrag = true;
 
 var app = new App();
+
+//# sourceMappingURL=index.js.map
