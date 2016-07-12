@@ -238,7 +238,7 @@ main .item .tag {
   display: inline-block;
   background: rgba(0,0,0,.1);
   border-radius: .25rem;
-  padding: 0 .25rem;
+  padding: 0 .5rem;
 }
 
 main section.done .item:not([contenteditable="true"]) {
