@@ -44,9 +44,11 @@ var App = function () {
     value: function hammer() {
       this.hammer = new Hammer.Manager(this.el, { domEvents: true });
 
-      var tap = new Hammer.Tap({ event: 'doubletap', taps: 2 });
+      var singleTap = new Hammer.Tap({ event: 'singletap', taps: 1 });
+      var doubleTap = new Hammer.Tap({ event: 'doubletap', taps: 2 });
 
-      this.hammer.add(tap);
+      this.hammer.add(doubleTap);
+      this.hammer.add(singleTap);
     }
   }, {
     key: 'observe',
@@ -461,13 +463,13 @@ var Section = function () {
         });
       });
 
-      header.addEventListener('click', function (e) {
+      header.addEventListener('singletap', function (e) {
         if (e.target !== header) return;
 
         _this7.list.el.dataset.active = '#' + _this7.sectionId;
       });
 
-      back.addEventListener('click', function (e) {
+      back.addEventListener('singletap', function (e) {
         if (e.target !== back) return;
 
         _this7.list.el.dataset.active = '';
@@ -662,7 +664,7 @@ var DoneSection = function (_Section4) {
       button.innerText = 'Clear';
       this.el.appendChild(button);
 
-      button.addEventListener('click', function (e) {
+      button.addEventListener('singletap', function (e) {
         _this12.clear();
       });
 

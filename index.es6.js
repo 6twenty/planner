@@ -64,9 +64,11 @@ class App {
   hammer() {
     this.hammer = new Hammer.Manager(this.el, { domEvents: true })
 
-    const tap = new Hammer.Tap({ event: 'doubletap', taps: 2 })
+    const singleTap = new Hammer.Tap({ event: 'singletap', taps: 1 })
+    const doubleTap = new Hammer.Tap({ event: 'doubletap', taps: 2 })
 
-    this.hammer.add(tap)
+    this.hammer.add(doubleTap)
+    this.hammer.add(singleTap)
   }
 
   observe() {
@@ -382,13 +384,13 @@ class Section {
       })
     })
 
-    header.addEventListener('click', e => {
+    header.addEventListener('singletap', e => {
       if (e.target !== header) return
 
       this.list.el.dataset.active = `#${this.sectionId}`
     })
 
-    back.addEventListener('click', e => {
+    back.addEventListener('singletap', e => {
       if (e.target !== back) return
 
       this.list.el.dataset.active = ''
@@ -545,7 +547,7 @@ class DoneSection extends Section {
     button.innerText ='Clear'
     this.el.appendChild(button)
 
-    button.addEventListener('click', e => {
+    button.addEventListener('singletap', e => {
       this.clear()
     })
 
