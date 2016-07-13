@@ -6,6 +6,7 @@
   "scripts": {
     "babel": "babel index.es6.js -o index.js -s",
     "prefix": "autoprefixer-cli -o index.css index.raw.css",
+    "prep": "npm run babel -S && npm run prefix -S",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "babel": {
