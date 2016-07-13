@@ -532,6 +532,10 @@ main .item.gu-mirror[data-section-type="done"] {
     display: none !important;
   }
 
+  .standalone main[data-active^="#"] section header {
+    padding-top: 1rem;
+  }
+
   main section button.clear {
     display: none;
     left: 0;
@@ -569,6 +573,10 @@ main .item.gu-mirror[data-section-type="done"] {
     max-height: none;
   }
 
+  .standalone main[data-active^="#"] section .list {
+    top: 6.5rem;
+  }
+
   main[data-active^="#"] section .list::before {
     content: '';
     display: block;
@@ -590,6 +598,10 @@ main .item.gu-mirror[data-section-type="done"] {
     font-size: 3rem;
     -webkit-transform: translateY(-50%) rotate(-90deg);
             transform: translateY(-50%) rotate(-90deg);
+  }
+
+  .standalone main[data-active^="#"] section button.back {
+    top: calc(50% + .5rem);
   }
 
   main[data-active=""] section:first-of-type .list {

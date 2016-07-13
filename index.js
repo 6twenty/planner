@@ -22,6 +22,10 @@ var App = function () {
     this.editing = false;
     this._filtered = '';
 
+    if (navigator.standalone) {
+      this.el.classList.add('standalone');
+    }
+
     this.hammer();
     this.build();
     this.observe();
