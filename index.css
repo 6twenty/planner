@@ -282,6 +282,7 @@ main .item.gu-mirror {
   cursor: grabbing;
 }
 
+main .item:focus,
 main .item.gu-mirror,
 main .item.gu-transit,
 main .item:hover {

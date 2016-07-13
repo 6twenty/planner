@@ -768,6 +768,9 @@ var Item = function () {
       el.dataset.sectionType = this.section.name;
       el.dataset.id = this.id;
       el.innerHTML = App.markdown(this.content);
+      el.tabIndex = 1;
+
+      el.addEventListener('keydown', this.onKeydown);
 
       el.addEventListener('touchstart', function (e) {
         if ('_allowDrag' in _this16) return;
@@ -858,7 +861,6 @@ var Item = function () {
       }
 
       this.el.removeEventListener('doubletap', this.onDblClick);
-      this.el.addEventListener('keydown', this.onKeydown);
       this.el.addEventListener('blur', this.onBlur);
       this.el.addEventListener('paste', this.onPaste);
     }
@@ -869,7 +871,6 @@ var Item = function () {
       this.content = this.el.innerText;
       this.el.contentEditable = 'false';
       this.el.innerHTML = App.markdown(this.content);
-      this.el.removeEventListener('keydown', this.onKeydown);
       this.el.removeEventListener('blur', this.onBlur);
       this.el.removeEventListener('paste', this.onPaste);
 
@@ -909,8 +910,14 @@ var Item = function () {
   }, {
     key: 'onKeydown',
     value: function onKeydown(e) {
-      if (e.which === 27) this.cancelEditing(); // Esc
-      if (e.which === 13 && !e.shiftKey) this.el.blur(); // Enter
+      if (e.which === 13) e.preventDefault();
+
+      if (this.editing) {
+        if (e.which === 27) this.cancelEditing(); // Esc
+        if (e.which === 13 && !e.shiftKey) this.el.blur(); // Enter
+      } else {
+        if (e.which === 13) this.startEditing(); // Enter
+      }
     }
   }, {
     key: 'onBlur',
