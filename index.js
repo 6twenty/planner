@@ -892,7 +892,6 @@ var Item = function () {
   }, {
     key: 'onDblClick',
     value: function onDblClick(e) {
-      e.preventDefault();
       this.startEditing();
     }
   }, {

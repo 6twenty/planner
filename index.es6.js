@@ -770,7 +770,6 @@ class Item {
   }
 
   onDblClick(e) {
-    e.preventDefault()
     this.startEditing()
   }
 
