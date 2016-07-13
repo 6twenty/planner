@@ -126,13 +126,9 @@ var App = function () {
   }, {
     key: 'markdown',
     value: function markdown(string) {
-      var tags = string.match(/\S*#(?:\[[^\]]+\]|\S+)/g);
-
-      if (tags) {
-        tags.forEach(function (tag) {
-          string = string.replace(tag, '<span class="tag">' + tag + '</span>');
-        });
-      }
+      string = string.replace(/(^|\s)(#(\w+))\b/g, function (match, initial, hashtag) {
+        return initial + '<span class="tag">' + hashtag + '</span>';
+      });
 
       return marked(string);
     }

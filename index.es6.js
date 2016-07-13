@@ -27,13 +27,9 @@ class App {
   }
 
   static markdown(string) {
-    const tags = string.match(/\S*#(?:\[[^\]]+\]|\S+)/g)
-
-    if (tags) {
-      tags.forEach(tag => {
-        string = string.replace(tag, `<span class="tag">${tag}</span>`)
-      })
-    }
+    string = string.replace(/(^|\s)(#(\w+))\b/g, (match, initial, hashtag) => {
+      return `${initial}<span class="tag">${hashtag}</span>`
+    })
 
     return marked(string)
   }
