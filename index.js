@@ -425,7 +425,9 @@ var Section = function () {
     this.name = opts.name;
     this.title = opts.name;
     this.sectionId = opts.sectionId;
-    this.classes = new Set([opts.name, opts.sectionId]);
+    this.classes = new Set();
+    this.classes.add(opts.name);
+    this.classes.add(opts.sectionId);
   }
 
   _createClass(Section, [{
