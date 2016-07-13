@@ -81,6 +81,11 @@ var App = function () {
         if (e.which === 27) {
           // Esc
           e.preventDefault();
+
+          if (document.activeElement) {
+            document.activeElement.blur();
+          }
+
           _this.filtered = '';
           if (_this.list.drake.dragging) {
             _this.list.drake.cancel(true);

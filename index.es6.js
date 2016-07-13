@@ -98,6 +98,11 @@ class App {
 
       if (e.which === 27) { // Esc
         e.preventDefault()
+
+        if (document.activeElement) {
+          document.activeElement.blur()
+        }
+
         this.filtered = ''
         if (this.list.drake.dragging) {
           this.list.drake.cancel(true)
