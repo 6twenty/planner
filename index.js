@@ -746,6 +746,7 @@ var Item = function () {
     this.onDblClick = this.onDblClick.bind(this);
     this.onKeydown = this.onKeydown.bind(this);
     this.onBlur = this.onBlur.bind(this);
+    this.onPaste = this.onPaste.bind(this);
   }
 
   _createClass(Item, [{
@@ -767,20 +768,6 @@ var Item = function () {
       el.dataset.sectionType = this.section.name;
       el.dataset.id = this.id;
       el.innerHTML = App.markdown(this.content);
-
-      el.addEventListener('paste', function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-
-        var clipboardData = e.clipboardData || window.clipboardData;
-        var pastedData = clipboardData.getData('Text');
-        var selection = window.getSelection();
-        var range = selection.getRangeAt(0);
-
-        range.deleteContents();
-        range.insertNode(document.createTextNode(pastedData));
-        _this16.focus();
-      });
 
       el.addEventListener('touchstart', function (e) {
         if ('_allowDrag' in _this16) return;
@@ -873,6 +860,7 @@ var Item = function () {
       this.el.removeEventListener('doubletap', this.onDblClick);
       this.el.addEventListener('keydown', this.onKeydown);
       this.el.addEventListener('blur', this.onBlur);
+      this.el.addEventListener('paste', this.onPaste);
     }
   }, {
     key: 'finishEditing',
@@ -883,6 +871,7 @@ var Item = function () {
       this.el.innerHTML = App.markdown(this.content);
       this.el.removeEventListener('keydown', this.onKeydown);
       this.el.removeEventListener('blur', this.onBlur);
+      this.el.removeEventListener('paste', this.onPaste);
 
       if (this.el.innerText.replace(/\s/g, '') === '') {
         return this.remove();
@@ -927,6 +916,21 @@ var Item = function () {
     key: 'onBlur',
     value: function onBlur(e) {
       this.finishEditing();
+    }
+  }, {
+    key: 'onPaste',
+    value: function onPaste(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      var clipboardData = e.clipboardData || window.clipboardData;
+      var pastedData = clipboardData.getData('Text');
+      var selection = window.getSelection();
+      var range = selection.getRangeAt(0);
+
+      range.deleteContents();
+      range.insertNode(document.createTextNode(pastedData));
+      this.focus();
     }
   }, {
     key: 'editing',

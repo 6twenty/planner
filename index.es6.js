@@ -610,6 +610,7 @@ class Item {
     this.onDblClick = this.onDblClick.bind(this)
     this.onKeydown = this.onKeydown.bind(this)
     this.onBlur = this.onBlur.bind(this)
+    this.onPaste = this.onPaste.bind(this)
   }
 
   get editing () {
@@ -654,20 +655,6 @@ class Item {
     el.dataset.sectionType = this.section.name
     el.dataset.id = this.id
     el.innerHTML = App.markdown(this.content)
-
-    el.addEventListener('paste', e => {
-      e.stopPropagation()
-      e.preventDefault()
-
-      const clipboardData = e.clipboardData || window.clipboardData
-      const pastedData = clipboardData.getData('Text')
-      const selection = window.getSelection()
-      const range = selection.getRangeAt(0)
-
-      range.deleteContents()
-      range.insertNode(document.createTextNode(pastedData))
-      this.focus()
-    })
 
     el.addEventListener('touchstart', e => {
       if ('_allowDrag' in this) return
@@ -754,6 +741,7 @@ class Item {
     this.el.removeEventListener('doubletap', this.onDblClick)
     this.el.addEventListener('keydown', this.onKeydown)
     this.el.addEventListener('blur', this.onBlur)
+    this.el.addEventListener('paste', this.onPaste)
   }
 
   finishEditing() {
@@ -763,6 +751,7 @@ class Item {
     this.el.innerHTML = App.markdown(this.content)
     this.el.removeEventListener('keydown', this.onKeydown)
     this.el.removeEventListener('blur', this.onBlur)
+    this.el.removeEventListener('paste', this.onPaste)
 
     if (this.el.innerText.replace(/\s/g, '') === '') {
       return this.remove()
@@ -801,6 +790,20 @@ class Item {
 
   onBlur(e) {
     this.finishEditing()
+  }
+
+  onPaste(e) {
+    e.stopPropagation()
+    e.preventDefault()
+
+    const clipboardData = e.clipboardData || window.clipboardData
+    const pastedData = clipboardData.getData('Text')
+    const selection = window.getSelection()
+    const range = selection.getRangeAt(0)
+
+    range.deleteContents()
+    range.insertNode(document.createTextNode(pastedData))
+    this.focus()
   }
 
 }
