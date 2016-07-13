@@ -748,10 +748,15 @@ var Item = function () {
     this._content = opts.content || '';
     this.list = this._section.list;
 
+    // Explicit bindings
     this.onDblClick = this.onDblClick.bind(this);
     this.onKeydown = this.onKeydown.bind(this);
     this.onBlur = this.onBlur.bind(this);
     this.onPaste = this.onPaste.bind(this);
+    this.onTouchStart = this.onTouchStart.bind(this);
+    this.onTouchMove = this.onTouchMove.bind(this);
+    this.onTouchEnd = this.onTouchEnd.bind(this);
+    this.onMouseMove = this.onMouseMove.bind(this);
   }
 
   _createClass(Item, [{
@@ -765,8 +770,6 @@ var Item = function () {
   }, {
     key: 'build',
     value: function build() {
-      var _this16 = this;
-
       var el = document.createElement('article');
 
       el.classList.add('item');
@@ -776,35 +779,6 @@ var Item = function () {
       el.tabIndex = 1;
 
       el.addEventListener('keydown', this.onKeydown);
-
-      el.addEventListener('touchstart', function (e) {
-        if ('_allowDrag' in _this16) return;
-
-        App.canDrag = false;
-
-        _this16._timer = setTimeout(function () {
-          _this16._allowDrag = App.canDrag = true;
-          _this16.el.classList.add('enlarge');
-          _this16.el.dispatchEvent(e);
-          delete _this16._allowDrag;
-        }, 500);
-      });
-
-      el.addEventListener('touchmove', function (e) {
-        clearTimeout(_this16._timer);
-      });
-
-      el.addEventListener('touchend', function (e) {
-        _this16.el.classList.remove('enlarge');
-      });
-
-      el.addEventListener('touchcancel', function (e) {
-        _this16.el.classList.remove('enlarge');
-      });
-
-      el.addEventListener('mousedown', function (e) {
-        App.canDrag = true;
-      });
 
       this.el = el;
 
@@ -866,6 +840,11 @@ var Item = function () {
       }
 
       this.el.removeEventListener('doubletap', this.onDblClick);
+      this.el.removeEventListener('touchstart', this.onTouchStart);
+      this.el.removeEventListener('touchmove', this.onTouchMove);
+      this.el.removeEventListener('touchend', this.onTouchEnd);
+      this.el.removeEventListener('touchcancel', this.onTouchEnd);
+      this.el.removeEventListener('mousedown', this.onMouseMove);
       this.el.addEventListener('blur', this.onBlur);
       this.el.addEventListener('paste', this.onPaste);
     }
@@ -895,6 +874,11 @@ var Item = function () {
     key: 'awaitEditing',
     value: function awaitEditing() {
       this.el.addEventListener('doubletap', this.onDblClick);
+      this.el.addEventListener('touchstart', this.onTouchStart);
+      this.el.addEventListener('touchmove', this.onTouchMove);
+      this.el.addEventListener('touchend', this.onTouchEnd);
+      this.el.addEventListener('touchcancel', this.onTouchEnd);
+      this.el.addEventListener('mousedown', this.onMouseMove);
     }
   }, {
     key: 'focus',
@@ -943,6 +927,39 @@ var Item = function () {
       range.deleteContents();
       range.insertNode(document.createTextNode(pastedData));
       this.focus();
+    }
+  }, {
+    key: 'onTouchStart',
+    value: function onTouchStart(e) {
+      var _this16 = this;
+
+      if ('_allowDrag' in this) return;
+
+      App.canDrag = false;
+
+      this._timer = setTimeout(function () {
+        _this16._allowDrag = App.canDrag = true;
+        _this16.el.classList.add('enlarge');
+        _this16.el.dispatchEvent(e);
+        delete _this16._allowDrag;
+      }, 500);
+    }
+  }, {
+    key: 'onTouchMove',
+    value: function onTouchMove(e) {
+      clearTimeout(this._timer);
+    }
+  }, {
+    key: 'onTouchEnd',
+    value: function onTouchEnd(e) {
+      clearTimeout(this._timer);
+      this.el.classList.remove('enlarge');
+    }
+  }, {
+    key: 'onMouseMove',
+    value: function onMouseMove(e) {
+      clearTimeout(this._timer);
+      App.canDrag = true;
     }
   }, {
     key: 'editing',

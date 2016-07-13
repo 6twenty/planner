@@ -612,10 +612,15 @@ class Item {
     this._content = opts.content || ''
     this.list = this._section.list
 
+    // Explicit bindings
     this.onDblClick = this.onDblClick.bind(this)
     this.onKeydown = this.onKeydown.bind(this)
     this.onBlur = this.onBlur.bind(this)
     this.onPaste = this.onPaste.bind(this)
+    this.onTouchStart = this.onTouchStart.bind(this)
+    this.onTouchMove = this.onTouchMove.bind(this)
+    this.onTouchEnd = this.onTouchEnd.bind(this)
+    this.onMouseMove = this.onMouseMove.bind(this)
   }
 
   get editing () {
@@ -663,35 +668,6 @@ class Item {
     el.tabIndex = 1
 
     el.addEventListener('keydown', this.onKeydown)
-
-    el.addEventListener('touchstart', e => {
-      if ('_allowDrag' in this) return
-
-      App.canDrag = false
-
-      this._timer = setTimeout(() => {
-        this._allowDrag = App.canDrag = true
-        this.el.classList.add('enlarge')
-        this.el.dispatchEvent(e)
-        delete this._allowDrag
-      }, 500)
-    })
-
-    el.addEventListener('touchmove', e => {
-      clearTimeout(this._timer)
-    })
-
-    el.addEventListener('touchend', e => {
-      this.el.classList.remove('enlarge')
-    })
-
-    el.addEventListener('touchcancel', e => {
-      this.el.classList.remove('enlarge')
-    })
-
-    el.addEventListener('mousedown', e => {
-      App.canDrag = true
-    })
 
     this.el = el
 
@@ -747,6 +723,11 @@ class Item {
     }
 
     this.el.removeEventListener('doubletap', this.onDblClick)
+    this.el.removeEventListener('touchstart', this.onTouchStart)
+    this.el.removeEventListener('touchmove', this.onTouchMove)
+    this.el.removeEventListener('touchend', this.onTouchEnd)
+    this.el.removeEventListener('touchcancel', this.onTouchEnd)
+    this.el.removeEventListener('mousedown', this.onMouseMove)
     this.el.addEventListener('blur', this.onBlur)
     this.el.addEventListener('paste', this.onPaste)
   }
@@ -773,6 +754,11 @@ class Item {
 
   awaitEditing() {
     this.el.addEventListener('doubletap', this.onDblClick)
+    this.el.addEventListener('touchstart', this.onTouchStart)
+    this.el.addEventListener('touchmove', this.onTouchMove)
+    this.el.addEventListener('touchend', this.onTouchEnd)
+    this.el.addEventListener('touchcancel', this.onTouchEnd)
+    this.el.addEventListener('mousedown', this.onMouseMove)
   }
 
   focus() {
@@ -816,6 +802,33 @@ class Item {
     range.deleteContents()
     range.insertNode(document.createTextNode(pastedData))
     this.focus()
+  }
+
+  onTouchStart(e) {
+    if ('_allowDrag' in this) return
+
+    App.canDrag = false
+
+    this._timer = setTimeout(() => {
+      this._allowDrag = App.canDrag = true
+      this.el.classList.add('enlarge')
+      this.el.dispatchEvent(e)
+      delete this._allowDrag
+    }, 500)
+  }
+
+  onTouchMove(e) {
+    clearTimeout(this._timer)
+  }
+
+  onTouchEnd(e) {
+    clearTimeout(this._timer)
+    this.el.classList.remove('enlarge')
+  }
+
+  onMouseMove(e) {
+    clearTimeout(this._timer)
+    App.canDrag = true
   }
 
 }
