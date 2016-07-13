@@ -32,8 +32,7 @@ aside {
   background: hsla(0,0%,0%,.66);
   padding: .5rem 1rem;
   left: 50%;
-  -webkit-transform: translateX(-50%);
-          transform: translateX(-50%);
+  transform: translateX(-50%);
   font-weight: bold;
 }
 
@@ -50,15 +49,9 @@ aside:empty {
 main {
   height: 100%;
   background: #77aaff;
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -ms-flex-wrap: wrap;
-      flex-wrap: wrap;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: row;
-          flex-direction: row;
+  flex-wrap: wrap;
+  flex-direction: row;
 }
 
 main section {
@@ -67,19 +60,17 @@ main section {
   width: 25%;
   overflow: auto;
   background: transparent;
-  -webkit-box-flex: 0;
-      -ms-flex: 0 1 auto;
-          flex: 0 1 auto;
+  flex: 0 1 auto;
 }
 
-main section.today { -webkit-box-ordinal-group: 2; -ms-flex-order: 1; order: 1; }
-main section.tomorrow { -webkit-box-ordinal-group: 3; -ms-flex-order: 2; order: 2; }
-main section.day-after-tomorrow { -webkit-box-ordinal-group: 4; -ms-flex-order: 3; order: 3; }
-main section.overdue { -webkit-box-ordinal-group: 5; -ms-flex-order: 4; order: 4; }
-main section.week { -webkit-box-ordinal-group: 6; -ms-flex-order: 5; order: 5; }
-main section.month { -webkit-box-ordinal-group: 7; -ms-flex-order: 6; order: 6; }
-main section.backlog { -webkit-box-ordinal-group: 8; -ms-flex-order: 7; order: 7; }
-main section.done { -webkit-box-ordinal-group: 9; -ms-flex-order: 8; order: 8; }
+main section.today { order: 1; }
+main section.tomorrow { order: 2; }
+main section.day-after-tomorrow { order: 3; }
+main section.overdue { order: 4; }
+main section.week { order: 5; }
+main section.month { order: 6; }
+main section.backlog { order: 7; }
+main section.done { order: 8; }
 
 main section header {
   display: block;
@@ -102,8 +93,7 @@ main section header[data-emoji]::before {
   margin-right: 1rem;
   vertical-align: middle;
   position: absolute;
-  -webkit-transform: translate(calc(-100% - .5rem), -50%);
-          transform: translate(calc(-100% - .5rem), -50%);
+  transform: translate(calc(-100% - .5rem), -50%);
   top: 50%;
 }
 
@@ -326,10 +316,8 @@ main .item.gu-transit {
 
 main .item.enlarge,
 main .item.gu-mirror {
-  -webkit-transform: scale(1.1);
-          transform: scale(1.1);
-  -webkit-transform-origin: 0 0;
-          transform-origin: 0 0;
+  transform: scale(1.1);
+  transform-origin: 0 0;
   opacity: .8;
 }
 
@@ -354,33 +342,19 @@ main .item.gu-mirror[data-section-type="done"] {
   }
 
   main {
-    -ms-flex-wrap: nowrap;
-        flex-wrap: nowrap;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-        -ms-flex-direction: column;
-            flex-direction: column;
+    flex-wrap: nowrap;
+    flex-direction: column;
   }
 
   main section {
     position: static;
     height: auto;
     width: 50%;
-    -webkit-box-flex: 1;
-        -ms-flex: 1 0 auto;
-            flex: 1 0 auto;
-    display: -webkit-box;
-    display: -ms-flexbox;
+    flex: 1 0 auto;
     display: flex;
-    -ms-flex-wrap: nowrap;
-        flex-wrap: nowrap;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-        -ms-flex-direction: column;
-            flex-direction: column;
-    -webkit-box-ordinal-group: 2 !important;
-        -ms-flex-order: 1 !important;
-            order: 1 !important;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    order: 1 !important;
   }
 
   main section.overdue,
@@ -401,22 +375,14 @@ main .item.gu-mirror[data-section-type="done"] {
   main section header {
     position: relative;
     height: auto;
-    -webkit-box-flex: 1;
-        -ms-flex: 1 0 auto;
-            flex: 1 0 auto;
+    flex: 1 0 auto;
     background: transparent;
     border-bottom: none;
     border-right: solid .5rem rgba(0,0,0,.5);
     box-shadow: inset 0 -.25rem 0 0 rgba(0,0,0,.15);
-    display: -webkit-box;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-align: center;
-        -ms-flex-align: center;
-            align-items: center;
-    -webkit-box-pack: center;
-        -ms-flex-pack: center;
-            justify-content: center;
+    align-items: center;
+    justify-content: center;
   }
 
   main section header::after {
@@ -425,8 +391,7 @@ main .item.gu-mirror[data-section-type="done"] {
     display: none;
     top: 50%;
     right: 0;
-    -webkit-transform: translateY(-50%);
-            transform: translateY(-50%);
+    transform: translateY(-50%);
     border: solid 1rem transparent;
     border-right: solid 1rem rgba(0,0,0,.5);
     border-left: 0;
@@ -591,8 +556,7 @@ main .item.gu-mirror[data-section-type="done"] {
     width: 4rem;
     line-height: 4rem;
     font-size: 3rem;
-    -webkit-transform: translateY(-50%) rotate(-90deg);
-            transform: translateY(-50%) rotate(-90deg);
+    transform: translateY(-50%) rotate(-90deg);
   }
 
   main[data-active=""] section:first-of-type .list {
