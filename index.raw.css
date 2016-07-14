@@ -7,7 +7,6 @@ body {
 }
 
 body {
-  font-family: -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
   line-height: 1.2;
   font-size: 1.5rem;
   color: white;
@@ -23,6 +22,15 @@ body {
 
 body * {
   box-sizing: inherit;
+}
+
+body {
+  font-family: -apple-system, ".SFNSText-Regular", "San Francisco", "Roboto", "Segoe UI", "Helvetica Neue", "Lucida Grande", sans-serif;
+}
+
+pre,
+code {
+  font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
 }
 
 aside {
@@ -233,18 +241,14 @@ main .item {
   z-index: 1;
 }
 
-main .item .tag {
-  display: inline-block;
-  background: rgba(0,0,0,.1);
-  border-radius: .25rem;
-  padding: 0 .5rem;
+/* Hashtags */
+main .item span {
+  color: palegreen;
 }
 
-main section.done .item .tag {
-  display: inline;
-  background: none;
-  padding: 0;
-  border-radius: 0;
+main .item code,
+main .item pre {
+  color: pink;
 }
 
 main section.done .item:not([contenteditable="true"]) {
@@ -301,9 +305,22 @@ main .item[contenteditable="true"] {
   user-select: text;
 }
 
-main .item p {
+main .item p,
+main .item blockquote,
+main .item ul,
+main .item ol {
   padding: .5rem 0;
   margin: 0;
+}
+
+main .item blockquote {
+  padding-left: 1.5rem;
+  border-left: solid .5rem rgba(255,255,255,.25);
+}
+
+main .item ul,
+main .item ol {
+  padding-left: 2rem;
 }
 
 main .item a {

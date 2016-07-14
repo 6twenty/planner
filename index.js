@@ -131,7 +131,7 @@ var App = function () {
     key: 'markdown',
     value: function markdown(string) {
       string = string.replace(/(^|\s)(#(\w+))\b/g, function (match, initial, hashtag) {
-        return initial + '<span class="tag">' + hashtag + '</span>';
+        return initial + '<span>' + hashtag + '</span>';
       });
 
       return marked(string);
@@ -897,7 +897,7 @@ var Item = function () {
   }, {
     key: 'onKeydown',
     value: function onKeydown(e) {
-      if (e.which === 13) e.preventDefault();
+      if (e.which === 13 && !e.shiftKey) e.preventDefault();
 
       if (this.editing) {
         if (e.which === 27) this.cancelEditing(); // Esc
