@@ -2,6 +2,8 @@
 class App {
 
   constructor() {
+    this.firebase()
+
     this.el = document.body
     this.editing = false
     this._filtered = ''
@@ -71,6 +73,16 @@ class App {
     const toDate = range.to.format(toFormat)
 
     return `${fromDate} - ${toDate}`
+  }
+
+  firebase() {
+    // Initialize Firebase
+    firebase.initializeApp({
+      apiKey: "AIzaSyBgNTLh6iZ8itiE0-JaJJqlyUJ4aW4rB3c",
+      authDomain: "planner-6059a.firebaseapp.com",
+      databaseURL: "https://planner-6059a.firebaseio.com",
+      storageBucket: "",
+    });
   }
 
   build() {

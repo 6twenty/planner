@@ -18,6 +18,8 @@ var App = function () {
   function App() {
     _classCallCheck(this, App);
 
+    this.firebase();
+
     this.el = document.body;
     this.editing = false;
     this._filtered = '';
@@ -53,6 +55,27 @@ var App = function () {
   }
 
   _createClass(App, [{
+    key: 'firebase',
+    value: function (_firebase) {
+      function firebase() {
+        return _firebase.apply(this, arguments);
+      }
+
+      firebase.toString = function () {
+        return _firebase.toString();
+      };
+
+      return firebase;
+    }(function () {
+      // Initialize Firebase
+      firebase.initializeApp({
+        apiKey: "AIzaSyBgNTLh6iZ8itiE0-JaJJqlyUJ4aW4rB3c",
+        authDomain: "planner-6059a.firebaseapp.com",
+        databaseURL: "https://planner-6059a.firebaseio.com",
+        storageBucket: ""
+      });
+    })
+  }, {
     key: 'build',
     value: function build() {
       this.aside = document.createElement('aside');
