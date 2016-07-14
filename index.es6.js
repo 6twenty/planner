@@ -38,6 +38,11 @@ class App {
     this.list.render()
   }
 
+  static load(items) {
+    const json = JSON.stringify(items)
+    localStorage.setItem('items', json)
+  }
+
   static uniqueId() {
     this._counter = this._counter || 0
     return ++this._counter
