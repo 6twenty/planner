@@ -76,6 +76,13 @@ var App = function () {
       });
     })
   }, {
+    key: 'load',
+    value: function load(items) {
+      var json = JSON.stringify(items);
+      localStorage.setItem('items', json);
+      this.list.load();
+    }
+  }, {
     key: 'build',
     value: function build() {
       this.aside = document.createElement('aside');
@@ -155,12 +162,6 @@ var App = function () {
       this.list.filter();
     }
   }], [{
-    key: 'load',
-    value: function load(items) {
-      var json = JSON.stringify(items);
-      localStorage.setItem('items', json);
-    }
-  }, {
     key: 'uniqueId',
     value: function uniqueId() {
       this._counter = this._counter || 0;
