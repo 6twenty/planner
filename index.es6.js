@@ -10,8 +10,19 @@ class App {
       this.el.classList.add('standalone')
     }
 
-    const colorHash = new ColorHash({ lightness: 0.85 })
-    App.hsl = colorHash.hsl.bind(colorHash)
+    const colorHash = new ColorHash({ lightness: [0.8, 0.85, 0.9], saturation: [0.8, 0.9, 1] })
+
+    App.hsl = (string) => {
+      let hsl = colorHash.hsl(string)
+
+      // Avoid hues in the blue range
+      if (hsl[0] > 200 && hsl[0] < 280) {
+        hsl = App.hsl(string + '_')
+      }
+
+      return hsl
+    }
+
     App.canDrag = true
 
     this.hammer()
