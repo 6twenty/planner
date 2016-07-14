@@ -251,14 +251,9 @@ main .item {
   z-index: 1;
 }
 
-/* Hashtags */
-main .item span {
-  color: palegreen;
-}
-
 main .item code,
 main .item pre {
-  color: pink;
+  color: cyan;
 }
 
 main section.done .item:not([contenteditable="true"]) {

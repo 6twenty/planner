@@ -10,6 +10,10 @@ class App {
       this.el.classList.add('standalone')
     }
 
+    const colorHash = new ColorHash({ lightness: 0.85 })
+    App.hsl = colorHash.hsl.bind(colorHash)
+    App.canDrag = true
+
     this.hammer()
     this.build()
     this.observe()
@@ -32,7 +36,9 @@ class App {
 
   static markdown(string) {
     string = string.replace(/(^|\s)(#(\w+))\b/g, (match, initial, hashtag) => {
-      return `${initial}<span>${hashtag}</span>`
+      const hsl = App.hsl(hashtag.replace('#', ''))
+      const color = `hsl(${hsl[0]}, ${hsl[1]*100}%, ${hsl[2]*100}%)`
+      return `${initial}<span style="color:${color}">${hashtag}</span>`
     })
 
     return marked(string)
@@ -828,7 +834,5 @@ class Item {
   }
 
 }
-
-App.canDrag = true
 
 const app = new App()

@@ -26,6 +26,10 @@ var App = function () {
       this.el.classList.add('standalone');
     }
 
+    var colorHash = new ColorHash({ lightness: 0.85 });
+    App.hsl = colorHash.hsl.bind(colorHash);
+    App.canDrag = true;
+
     this.hammer();
     this.build();
     this.observe();
@@ -131,7 +135,9 @@ var App = function () {
     key: 'markdown',
     value: function markdown(string) {
       string = string.replace(/(^|\s)(#(\w+))\b/g, function (match, initial, hashtag) {
-        return initial + '<span>' + hashtag + '</span>';
+        var hsl = App.hsl(hashtag.replace('#', ''));
+        var color = 'hsl(' + hsl[0] + ', ' + hsl[1] * 100 + '%, ' + hsl[2] * 100 + '%)';
+        return initial + '<span style="color:' + color + '">' + hashtag + '</span>';
       });
 
       return marked(string);
@@ -989,8 +995,6 @@ var Item = function () {
 
   return Item;
 }();
-
-App.canDrag = true;
 
 var app = new App();
 
