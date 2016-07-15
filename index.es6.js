@@ -54,7 +54,28 @@ class App {
       return `${initial}<span style="color:${color}">${hashtag}</span>`
     })
 
-    string = string.replace('--', '—')
+    let isWithinCodeBlock = false
+    const array = string.split('')
+    string = array.map((char, i) => {
+      const lastChar = array[i-1]
+      const nextChar = array[i+1]
+
+      if (isWithinCodeBlock) {
+        if (char === '`' && lastChar !== '`') {
+          isWithinCodeBlock = false
+        }
+      } else {
+        if (char === '`' && lastChar !== '`') {
+          isWithinCodeBlock = true
+        } else if (char === '-' && nextChar === '-') {
+          return ''
+        } else if (char === '-' && lastChar === '-') {
+          return '—'
+        }
+      }
+
+      return char
+    }).join('')
 
     return marked(string)
   }

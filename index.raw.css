@@ -301,6 +301,7 @@ main .item[contenteditable="true"] {
 }
 
 main .item p,
+main .item pre,
 main .item blockquote,
 main .item ul,
 main .item ol {

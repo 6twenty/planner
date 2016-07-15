@@ -181,7 +181,28 @@ var App = function () {
         return initial + '<span style="color:' + color + '">' + hashtag + '</span>';
       });
 
-      string = string.replace('--', '—');
+      var isWithinCodeBlock = false;
+      var array = string.split('');
+      string = array.map(function (char, i) {
+        var lastChar = array[i - 1];
+        var nextChar = array[i + 1];
+
+        if (isWithinCodeBlock) {
+          if (char === '`' && lastChar !== '`') {
+            isWithinCodeBlock = false;
+          }
+        } else {
+          if (char === '`' && lastChar !== '`') {
+            isWithinCodeBlock = true;
+          } else if (char === '-' && nextChar === '-') {
+            return '';
+          } else if (char === '-' && lastChar === '-') {
+            return '—';
+          }
+        }
+
+        return char;
+      }).join('');
 
       return marked(string);
     }
