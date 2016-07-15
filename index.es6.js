@@ -218,8 +218,18 @@ class App {
 
   buildModalSettings() {
     const section = document.createElement('section')
+    const close = document.createElement('a')
+    const cross = document.createElement('div')
 
+    close.classList.add('close')
+    cross.classList.add('cross')
+    close.appendChild(cross)
     section.dataset.id = 'settings'
+    section.appendChild(close)
+
+    close.addEventListener('singletap', e => {
+      this.list.app.modal.dataset.active = ''
+    })
 
     this.modal.appendChild(section)
   }
@@ -660,6 +670,22 @@ class DaySection extends Section {
     }
 
     this.listEl.dataset.day = day
+
+    if (this.date.isSame(today)) {
+      const settings = document.createElement('a')
+      const cog = document.createElement('div')
+
+      cog.appendChild(document.createElement('div'))
+      cog.classList.add('cog')
+      settings.classList.add('settings')
+      settings.appendChild(cog)
+
+      settings.addEventListener('singletap', e => {
+        this.list.app.modal.dataset.active = '#settings'
+      })
+
+      this.header.appendChild(settings)
+    }
 
     return this
   }
