@@ -181,6 +181,8 @@ var App = function () {
         return initial + '<span style="color:' + color + '">' + hashtag + '</span>';
       });
 
+      string = string.replace('--', '—');
+
       return marked(string);
     }
 
