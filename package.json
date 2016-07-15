@@ -4,11 +4,11 @@
   "description": "",
   "main": "",
   "scripts": {
-    "babel": "babel index.es6.js -o web/index.js -s",
-    "prebabel": "rm web/index.js",
-    "prefix": "autoprefixer-cli -o web/index.css index.raw.css",
-    "preprefix": "rm web/index.css",
-    "prep": "npm run babel -S && npm run prefix -S",
+    "js": "babel index.es6.js -o web/index.js -s",
+    "prejs": "rm web/index.js",
+    "css": "autoprefixer-cli -o web/index.css index.raw.css",
+    "precss": "rm web/index.css",
+    "prep": "npm run js -S && npm run css -S",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "babel": {

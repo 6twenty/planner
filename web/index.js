@@ -18,8 +18,6 @@ var App = function () {
   function App() {
     _classCallCheck(this, App);
 
-    this.firebase();
-
     this.el = document.body;
     this.editing = false;
     this._filtered = '';
@@ -52,6 +50,9 @@ var App = function () {
     }).build();
 
     this.list.render();
+
+    this.loading();
+    this.firebase().then(this.init.bind(this));
   }
 
   _createClass(App, [{
@@ -67,14 +68,57 @@ var App = function () {
 
       return firebase;
     }(function () {
-      // Initialize Firebase
+      var isAwaitingAuthRedirect = !!sessionStorage.getItem('awaitingAuthRedirect');
+
       firebase.initializeApp({
         apiKey: "AIzaSyBgNTLh6iZ8itiE0-JaJJqlyUJ4aW4rB3c",
         authDomain: "planner-6059a.firebaseapp.com",
         databaseURL: "https://planner-6059a.firebaseio.com",
         storageBucket: ""
       });
+
+      return new Promise(function (resolve, reject) {
+
+        firebase.auth().onAuthStateChanged(function (user) {
+          if (user || !isAwaitingAuthRedirect) {
+            resolve();
+          } else {
+            sessionStorage.removeItem('awaitingAuthRedirect');
+            firebase.auth().getRedirectResult().then(resolve);
+          }
+        });
+      });
     })
+  }, {
+    key: 'signIn',
+    value: function signIn(provider) {
+      sessionStorage.setItem('awaitingAuthRedirect', '1');
+      provider = provider.charAt(0).toUpperCase() + provider.slice(1);
+      var authProvider = new firebase.auth[provider + 'AuthProvider']();
+      firebase.auth().signInWithRedirect(authProvider);
+    }
+  }, {
+    key: 'signOut',
+    value: function signOut() {
+      firebase.auth().signOut();
+      this.list.unload();
+      this.modal.dataset.active = '#providers';
+    }
+  }, {
+    key: 'loading',
+    value: function loading() {
+      this.modal.dataset.active = '#loading';
+    }
+  }, {
+    key: 'init',
+    value: function init() {
+      if (firebase.auth().currentUser) {
+        this.modal.dataset.active = '';
+        this.list.load();
+      } else {
+        this.modal.dataset.active = '#providers';
+      }
+    }
   }, {
     key: 'load',
     value: function load(items) {
@@ -85,8 +129,84 @@ var App = function () {
   }, {
     key: 'build',
     value: function build() {
+      this.buildAside();
+      this.buildModal();
+    }
+  }, {
+    key: 'buildAside',
+    value: function buildAside() {
       this.aside = document.createElement('aside');
+
       this.el.appendChild(this.aside);
+    }
+  }, {
+    key: 'buildModal',
+    value: function buildModal() {
+      this.modal = document.createElement('div');
+      this.modal.classList.add('modal');
+
+      // this.modal.dataset.active = '#providers'
+
+      this.buildModalLoading();
+      this.buildModalProviders();
+      this.buildModalSettings();
+
+      this.el.appendChild(this.modal);
+    }
+  }, {
+    key: 'buildModalLoading',
+    value: function buildModalLoading() {
+      var section = document.createElement('section');
+      var div = document.createElement('div');
+
+      section.dataset.id = 'loading';
+      div.classList.add('loading');
+      section.appendChild(div);
+
+      this.modal.appendChild(section);
+    }
+  }, {
+    key: 'buildModalProviders',
+    value: function buildModalProviders() {
+      var _this = this;
+
+      var section = document.createElement('section');
+      var providers = ['google', 'facebook', 'twitter', 'github'];
+
+      section.dataset.id = 'providers';
+
+      providers.forEach(function (provider) {
+        var a = document.createElement('a');
+        var img = document.createElement('img');
+        img.src = '/' + provider + '.svg';
+        a.classList.add('provider');
+        a.appendChild(img);
+        section.appendChild(a);
+
+        if (provider === 'github') {
+          a.addEventListener('singletap', function (e) {
+            _this.signIn(provider);
+          });
+        } else {
+          a.style.opacity = 0.5;
+        }
+      });
+
+      this.modal.appendChild(section);
+    }
+  }, {
+    key: 'buildModalSettings',
+    value: function buildModalSettings() {
+      var section = document.createElement('section');
+
+      section.dataset.id = 'settings';
+
+      this.modal.appendChild(section);
+    }
+  }, {
+    key: 'renderInlineSVG',
+    value: function renderInlineSVG(path, viewbox) {
+      return '\n      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="' + viewbox + '" class="svg-path">\n        <path d="' + path + '">\n      </svg>\n    ';
     }
   }, {
     key: 'hammer',
@@ -102,11 +222,11 @@ var App = function () {
   }, {
     key: 'observe',
     value: function observe() {
-      var _this = this;
+      var _this2 = this;
 
       // For regular keys, use `keypress` (provides the correct char code)
       window.addEventListener('keypress', function (e) {
-        if (_this.editing) return;
+        if (_this2.editing) return;
         if (e.metaKey) return;
         if (e.ctrlKey) return;
         if (e.altKey) return;
@@ -116,12 +236,12 @@ var App = function () {
 
         if (!char) return;
 
-        _this.filtered += char;
+        _this2.filtered += char;
       });
 
       // For special keys (esc and backspace), use `keydown`
       window.addEventListener('keydown', function (e) {
-        if (_this.editing) return;
+        if (_this2.editing) return;
         if (e.metaKey) return;
         if (e.ctrlKey) return;
         if (e.altKey) return;
@@ -135,11 +255,11 @@ var App = function () {
             document.activeElement.blur();
           }
 
-          _this.filtered = '';
-          if (_this.list.drake.dragging) {
-            _this.list.drake.cancel(true);
-            if (_this.list.originalSectionId) {
-              _this.list.el.dataset.active = '#' + _this.list.originalSectionId;
+          _this2.filtered = '';
+          if (_this2.list.drake.dragging) {
+            _this2.list.drake.cancel(true);
+            if (_this2.list.originalSectionId) {
+              _this2.list.el.dataset.active = '#' + _this2.list.originalSectionId;
             }
           }
         }
@@ -147,7 +267,7 @@ var App = function () {
         if (e.which === 8) {
           // Backspace
           e.preventDefault();
-          _this.filtered = _this.filtered.slice(0, _this.filtered.length - 1);
+          _this2.filtered = _this2.filtered.slice(0, _this2.filtered.length - 1);
         }
       });
     }
@@ -249,7 +369,7 @@ var List = function () {
   _createClass(List, [{
     key: 'build',
     value: function build() {
-      var _this2 = this;
+      var _this3 = this;
 
       this.sections = []; // Ordered, for rendering sequentially
       this.sectionById = {}; // For easy lookup
@@ -271,32 +391,31 @@ var List = function () {
         }
 
         var section = new DaySection({
-          list: _this2,
+          list: _this3,
           date: date,
           sectionId: day
         }).build();
 
-        section.render(_this2.el);
+        section.render(_this3.el);
 
-        _this2.sections.push(section);
-        _this2.sectionById[section.id] = section;
+        _this3.sections.push(section);
+        _this3.sectionById[section.id] = section;
       });
 
       var sectionClasses = [WeekSection, MonthSection, BacklogSection, OverdueSection, DoneSection];
 
       sectionClasses.forEach(function (SectionClass) {
         var section = new SectionClass({
-          list: _this2
+          list: _this3
         }).build();
 
-        section.render(_this2.el);
+        section.render(_this3.el);
 
-        _this2.sections.push(section);
-        _this2.sectionById[section.id] = section;
+        _this3.sections.push(section);
+        _this3.sectionById[section.id] = section;
       });
 
       this.dragula();
-      this.load();
 
       return this;
     }
@@ -313,7 +432,7 @@ var List = function () {
 
       return dragula;
     }(function () {
-      var _this3 = this;
+      var _this4 = this;
 
       var lists = this.sections.map(function (section) {
         return section.listEl;
@@ -335,7 +454,7 @@ var List = function () {
             return false;
           }
 
-          var item = _this3.items[el.dataset.id];
+          var item = _this4.items[el.dataset.id];
 
           if (item.editing) {
             return false;
@@ -344,7 +463,7 @@ var List = function () {
           return true;
         },
         accepts: function accepts(el, target, source, sibling) {
-          var section = _this3.sectionById[target.parentElement.dataset.id];
+          var section = _this4.sectionById[target.parentElement.dataset.id];
           var active = section.list.el.querySelector('section.over');
 
           if (active) {
@@ -352,7 +471,7 @@ var List = function () {
           }
 
           section.el.classList.add('over');
-          _this3.el.dataset.active = '#' + section.sectionId;
+          _this4.el.dataset.active = '#' + section.sectionId;
 
           if (target.nodeName === 'HEADER') {
             if (target.parentElement === el.parentElement.parentElement) {
@@ -369,12 +488,12 @@ var List = function () {
       });
 
       this.drake.on('drag', function (el) {
-        _this3.originalSectionId = el.parentElement.parentElement.dataset.sectionId;
+        _this4.originalSectionId = el.parentElement.parentElement.dataset.sectionId;
         el.parentElement.parentElement.classList.add('over');
       });
 
       this.drake.on('dragend', function (el) {
-        var active = _this3.el.querySelector('section.over');
+        var active = _this4.el.querySelector('section.over');
 
         if (active) {
           active.classList.remove('over');
@@ -382,8 +501,8 @@ var List = function () {
       });
 
       this.drake.on('drop', function (el, target, source, sibling) {
-        var item = _this3.items[el.dataset.id];
-        var section = _this3.sectionById[target.parentElement.dataset.id];
+        var item = _this4.items[el.dataset.id];
+        var section = _this4.sectionById[target.parentElement.dataset.id];
         item.section = section;
       });
 
@@ -393,29 +512,44 @@ var List = function () {
       });
 
       this.drake.on('shadow', function (el, container, source) {
-        var mirror = _this3.el.querySelector('.item.gu-mirror');
+        var mirror = _this4.el.querySelector('.item.gu-mirror');
         mirror.dataset.sectionType = container.parentElement.dataset.name;
       });
     })
   }, {
     key: 'load',
     value: function load() {
-      var _this4 = this;
+      var _this5 = this;
 
       var items = this.stored();
 
       if (!items) return;
 
       items.forEach(function (item) {
-        var section = _this4.sectionById[item.group];
+        var section = _this5.sectionById[item.group];
 
         if (!section) {
-          section = _this4.sectionById.overdue;
+          section = _this5.sectionById.overdue;
         }
 
         section.createItem({
           content: item.content
         });
+      });
+    }
+  }, {
+    key: 'unload',
+    value: function unload() {
+      var _this6 = this;
+
+      var ids = Object.keys(this.items);
+
+      ids.forEach(function (id) {
+        var item = _this6.items[id];
+
+        item.detach();
+
+        delete _this6.items[id];
       });
     }
   }, {
@@ -449,7 +583,7 @@ var List = function () {
   }, {
     key: 'save',
     value: function save() {
-      var _this5 = this;
+      var _this7 = this;
 
       // Get order from the DOM
       var els = this.el.querySelectorAll('.item:not(.gu-mirror)');
@@ -457,7 +591,7 @@ var List = function () {
         return el.dataset.id;
       });
       var items = ids.map(function (id) {
-        return _this5.items[id];
+        return _this7.items[id];
       });
       var stringified = JSON.stringify(items);
 
@@ -467,12 +601,12 @@ var List = function () {
   }, {
     key: 'filter',
     value: function filter() {
-      var _this6 = this;
+      var _this8 = this;
 
       var regex = new RegExp(App.escapeRegex(this.app.filtered), 'i');
 
       Object.keys(this.items).forEach(function (id) {
-        var item = _this6.items[id];
+        var item = _this8.items[id];
 
         if (regex.test(item.content)) {
           item.show();
@@ -506,7 +640,7 @@ var Section = function () {
   _createClass(Section, [{
     key: 'build',
     value: function build() {
-      var _this7 = this;
+      var _this9 = this;
 
       var section = document.createElement('section');
       var header = document.createElement('header');
@@ -534,11 +668,11 @@ var Section = function () {
       this.listEl = list;
 
       this.el.addEventListener('doubletap', function (e) {
-        if (e.target !== _this7.listEl && e.target !== _this7.header) return;
+        if (e.target !== _this9.listEl && e.target !== _this9.header) return;
 
-        var first = e.target !== _this7.listEl;
+        var first = e.target !== _this9.listEl;
 
-        _this7.createItem({
+        _this9.createItem({
           edit: true,
           first: first
         });
@@ -547,13 +681,13 @@ var Section = function () {
       header.addEventListener('singletap', function (e) {
         if (e.target !== header) return;
 
-        _this7.list.el.dataset.active = '#' + _this7.sectionId;
+        _this9.list.el.dataset.active = '#' + _this9.sectionId;
       });
 
       back.addEventListener('singletap', function (e) {
         if (e.target !== back) return;
 
-        _this7.list.el.dataset.active = '';
+        _this9.list.el.dataset.active = '';
       });
 
       return this;
@@ -601,23 +735,23 @@ var DaySection = function (_Section) {
     opts.id = date.format('YYYY-MM-DD');
     opts.name = 'day';
 
-    var _this8 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
+    var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
 
-    _this8.date = date;
-    _this8.title = date.format('dddd');
+    _this10.date = date;
+    _this10.title = date.format('dddd');
 
     if (isSaturday) {
-      _this8.classes.add('weekend');
+      _this10.classes.add('weekend');
     }
 
     if (isToday && isSaturday) {
-      _this8.title = 'This weekend';
+      _this10.title = 'This weekend';
     } else if (isToday) {
-      _this8.title = 'Today';
+      _this10.title = 'Today';
     } else if (isSaturday) {
-      _this8.title = 'Weekend';
+      _this10.title = 'Weekend';
     }
-    return _this8;
+    return _this10;
   }
 
   _createClass(DaySection, [{
@@ -658,10 +792,10 @@ var WeekSection = function (_Section2) {
     opts.name = 'week';
     opts.sectionId = 'week';
 
-    var _this9 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
+    var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
 
-    _this9.title = 'This week';
-    return _this9;
+    _this11.title = 'This week';
+    return _this11;
   }
 
   _createClass(WeekSection, [{
@@ -694,10 +828,10 @@ var MonthSection = function (_Section3) {
     opts.name = 'month';
     opts.sectionId = 'month';
 
-    var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
+    var _this12 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
 
-    _this10.title = 'This month';
-    return _this10;
+    _this12.title = 'This month';
+    return _this12;
   }
 
   _createClass(MonthSection, [{
@@ -735,7 +869,7 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'build',
     value: function build() {
-      var _this12 = this;
+      var _this14 = this;
 
       _get(Object.getPrototypeOf(DoneSection.prototype), 'build', this).call(this);
 
@@ -746,7 +880,7 @@ var DoneSection = function (_Section4) {
       this.el.appendChild(button);
 
       button.addEventListener('singletap', function (e) {
-        _this12.clear();
+        _this14.clear();
       });
 
       return this;
@@ -754,11 +888,11 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'clear',
     value: function clear() {
-      var _this13 = this;
+      var _this15 = this;
 
       Object.keys(this.list.items).forEach(function (id) {
-        var item = _this13.list.items[id];
-        if (item.section.id === _this13.id) {
+        var item = _this15.list.items[id];
+        if (item.section.id === _this15.id) {
           item.remove();
         }
       });
@@ -999,16 +1133,16 @@ var Item = function () {
   }, {
     key: 'onTouchStart',
     value: function onTouchStart(e) {
-      var _this16 = this;
+      var _this18 = this;
 
       if ('_allowDrag' in this) return;
 
       App.canDrag = false;
 
       this._timer = setTimeout(function () {
-        _this16._allowDrag = App.canDrag = true;
-        _this16.el.dispatchEvent(e);
-        delete _this16._allowDrag;
+        _this18._allowDrag = App.canDrag = true;
+        _this18.el.dispatchEvent(e);
+        delete _this18._allowDrag;
       }, 500);
     }
   }, {

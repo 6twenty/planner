@@ -2,8 +2,6 @@
 class App {
 
   constructor() {
-    this.firebase()
-
     this.el = document.body
     this.editing = false
     this._filtered = ''
@@ -36,6 +34,9 @@ class App {
     }).build()
 
     this.list.render()
+
+    this.loading()
+    this.firebase().then(this.init.bind(this))
   }
 
   static uniqueId() {
@@ -99,13 +100,53 @@ class App {
   }
 
   firebase() {
-    // Initialize Firebase
+    const isAwaitingAuthRedirect = !!sessionStorage.getItem('awaitingAuthRedirect')
+
     firebase.initializeApp({
       apiKey: "AIzaSyBgNTLh6iZ8itiE0-JaJJqlyUJ4aW4rB3c",
       authDomain: "planner-6059a.firebaseapp.com",
       databaseURL: "https://planner-6059a.firebaseio.com",
       storageBucket: "",
-    });
+    })
+
+    return new Promise((resolve, reject) => {
+
+      firebase.auth().onAuthStateChanged(user => {
+        if (user || !isAwaitingAuthRedirect) {
+          resolve()
+        } else {
+          sessionStorage.removeItem('awaitingAuthRedirect')
+          firebase.auth().getRedirectResult().then(resolve)
+        }
+      })
+
+    })
+  }
+
+  signIn(provider) {
+    sessionStorage.setItem('awaitingAuthRedirect', '1')
+    provider = provider.charAt(0).toUpperCase() + provider.slice(1)
+    const authProvider = new firebase.auth[`${provider}AuthProvider`]()
+    firebase.auth().signInWithRedirect(authProvider)
+  }
+
+  signOut() {
+    firebase.auth().signOut()
+    this.list.unload()
+    this.modal.dataset.active = '#providers'
+  }
+
+  loading() {
+    this.modal.dataset.active = '#loading'
+  }
+
+  init() {
+    if (firebase.auth().currentUser) {
+      this.modal.dataset.active = ''
+      this.list.load()
+    } else {
+      this.modal.dataset.active = '#providers'
+    }
   }
 
   load(items) {
@@ -115,8 +156,80 @@ class App {
   }
 
   build() {
+    this.buildAside()
+    this.buildModal()
+  }
+
+  buildAside() {
     this.aside = document.createElement('aside')
+
     this.el.appendChild(this.aside)
+  }
+
+  buildModal() {
+    this.modal = document.createElement('div')
+    this.modal.classList.add('modal')
+
+    // this.modal.dataset.active = '#providers'
+
+    this.buildModalLoading()
+    this.buildModalProviders()
+    this.buildModalSettings()
+
+    this.el.appendChild(this.modal)
+  }
+
+  buildModalLoading() {
+    const section = document.createElement('section')
+    const div = document.createElement('div')
+
+    section.dataset.id = 'loading'
+    div.classList.add('loading')
+    section.appendChild(div)
+
+    this.modal.appendChild(section)
+  }
+
+  buildModalProviders() {
+    const section = document.createElement('section')
+    const providers = ['google', 'facebook', 'twitter', 'github']
+
+    section.dataset.id = 'providers'
+
+    providers.forEach(provider => {
+      const a = document.createElement('a')
+      const img = document.createElement('img')
+      img.src = `/${provider}.svg`
+      a.classList.add('provider')
+      a.appendChild(img)
+      section.appendChild(a)
+
+      if (provider === 'github') {
+        a.addEventListener('singletap', e => {
+          this.signIn(provider)
+        })
+      } else {
+        a.style.opacity = 0.5
+      }
+    })
+
+    this.modal.appendChild(section)
+  }
+
+  buildModalSettings() {
+    const section = document.createElement('section')
+
+    section.dataset.id = 'settings'
+
+    this.modal.appendChild(section)
+  }
+
+  renderInlineSVG(path, viewbox) {
+    return `
+      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="${viewbox}" class="svg-path">
+        <path d="${path}">
+      </svg>
+    `
   }
 
   hammer() {
@@ -248,7 +361,6 @@ class List {
     })
 
     this.dragula()
-    this.load()
 
     return this
   }
@@ -348,6 +460,18 @@ class List {
       section.createItem({
         content: item.content
       })
+    })
+  }
+
+  unload() {
+    const ids = Object.keys(this.items)
+
+    ids.forEach(id => {
+      const item = this.items[id]
+
+      item.detach()
+
+      delete this.items[id]
     })
   }
 

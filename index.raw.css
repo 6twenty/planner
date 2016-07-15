@@ -54,6 +54,102 @@ aside:empty {
   display: none;
 }
 
+.modal {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: rgba(0,0,0,.9);
+  display: none;
+}
+
+.modal[data-active^="#"] {
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal section {
+  display: none;
+  flex: 0 1 auto;
+}
+
+.modal[data-active="#loading"] section[data-id="loading"],
+.modal[data-active="#providers"] section[data-id="providers"],
+.modal[data-active="#settings"] section[data-id="settings"] {
+  display: block;
+}
+
+.modal section[data-id="providers"] {
+  text-align: center;
+}
+
+.modal section[data-id="providers"] a.provider {
+  display: inline-block;
+  margin: 2.5rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.modal section[data-id="providers"] a.provider img {
+  height: 10rem;
+  width: 10rem;
+}
+
+.loading {
+  font-size: 3rem;
+  animation: clockwise 1.5s linear infinite;
+  display: block;
+  height: 2em;
+  position: relative;
+  width: 2em;
+}
+
+.loading,
+.loading:before,
+.loading:after {
+  border: .2em solid transparent;
+  border-radius: 50%;
+  border-top-color: rgba(25,255,255,0.6);
+  margin: auto;
+}
+
+.loading:before,
+.loading:after {
+  content: '';
+  position: absolute;
+}
+
+.loading:before {
+  animation: anticlockwise .9s linear infinite;
+  top: -.6em;
+  right: -.6em;
+  bottom: -.6em;
+  left: -.6em;
+}
+
+.loading:after {
+  animation: anticlockwise .66s linear infinite;
+  top: .3em;
+  right: .3em;
+  bottom: .3em;
+  left: .3em;
+}
+
+@keyframes clockwise {
+  0%  { transform: rotate(0deg) }
+  100%{ transform: rotate(360deg) }
+}
+
+@keyframes anticlockwise {
+  0%  { transform: rotate(360deg) }
+  100%{ transform: rotate(0deg) }
+}
+
 main {
   height: 100%;
   background: #77aaff;
