@@ -140,6 +140,16 @@ class App {
   signOut() {
     firebase.auth().signOut()
     this.list.unload()
+
+    const settings = this.el.querySelector('.settings')
+    const profile = this.el.querySelector('.profile')
+
+    settings.innerText = ''
+    profile.innerText = ''
+
+    settings.removeAttribute('style')
+    profile.removeAttribute('style')
+
     this.modal.dataset.active = '#providers'
   }
 
@@ -154,12 +164,15 @@ class App {
       this.modal.dataset.active = ''
 
       const settings = this.el.querySelector('.settings')
+      const profile = this.el.querySelector('.profile')
       const letter = user.displayName ? user.displayName[0] : '?'
 
       settings.innerText = letter
+      profile.innerText = letter
 
       if (user.photoURL) {
         settings.style.backgroundImage = `url(${user.photoURL})`
+        profile.style.backgroundImage = `url(${user.photoURL})`
       }
 
       this.list.load()
@@ -231,13 +244,23 @@ class App {
   buildModalSettings() {
     const section = document.createElement('section')
     const close = document.createElement('a')
+    const profile = document.createElement('div')
+    const signOut = document.createElement('button')
 
     close.classList.add('close')
+    profile.classList.add('profile')
+    signOut.innerText = 'Sign out'
     section.dataset.id = 'settings'
     section.appendChild(close)
+    section.appendChild(profile)
+    section.appendChild(signOut)
 
     close.addEventListener('singletap', e => {
       this.list.app.modal.dataset.active = ''
+    })
+
+    signOut.addEventListener('singletap', e => {
+      this.signOut()
     })
 
     this.modal.appendChild(section)

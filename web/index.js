@@ -109,6 +109,16 @@ var App = function () {
     value: function signOut() {
       firebase.auth().signOut();
       this.list.unload();
+
+      var settings = this.el.querySelector('.settings');
+      var profile = this.el.querySelector('.profile');
+
+      settings.innerText = '';
+      profile.innerText = '';
+
+      settings.removeAttribute('style');
+      profile.removeAttribute('style');
+
       this.modal.dataset.active = '#providers';
     }
   }, {
@@ -125,12 +135,15 @@ var App = function () {
         this.modal.dataset.active = '';
 
         var settings = this.el.querySelector('.settings');
+        var profile = this.el.querySelector('.profile');
         var letter = user.displayName ? user.displayName[0] : '?';
 
         settings.innerText = letter;
+        profile.innerText = letter;
 
         if (user.photoURL) {
           settings.style.backgroundImage = 'url(' + user.photoURL + ')';
+          profile.style.backgroundImage = 'url(' + user.photoURL + ')';
         }
 
         this.list.load();
@@ -213,13 +226,23 @@ var App = function () {
 
       var section = document.createElement('section');
       var close = document.createElement('a');
+      var profile = document.createElement('div');
+      var signOut = document.createElement('button');
 
       close.classList.add('close');
+      profile.classList.add('profile');
+      signOut.innerText = 'Sign out';
       section.dataset.id = 'settings';
       section.appendChild(close);
+      section.appendChild(profile);
+      section.appendChild(signOut);
 
       close.addEventListener('singletap', function (e) {
         _this2.list.app.modal.dataset.active = '';
+      });
+
+      signOut.addEventListener('singletap', function (e) {
+        _this2.signOut();
       });
 
       this.modal.appendChild(section);

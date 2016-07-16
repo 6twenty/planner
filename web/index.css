@@ -33,6 +33,18 @@ code {
   font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
 }
 
+button {
+  border-radius: 0;
+  border: none;
+  text-align: center;
+  color: inherit;
+  font-size: inherit;
+  outline: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
 aside {
   position: fixed;
   width: auto;
@@ -102,6 +114,34 @@ aside:empty {
 
 .modal section .close::after {
   content: '╳';
+}
+
+.modal section .profile {
+  height: 10rem;
+  width: 10rem;
+  line-height: 10rem;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(0,0,0,.5);
+  border: solid .5rem white;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.modal section .profile[style] {
+  color: transparent;
+  text-indent: 10rem;
+  background-color: white;
+}
+
+.modal section button {
+  text-transform: uppercase;
+  line-height: 4rem;
+  height: 4rem;
+  width: 10rem;
+  cursor: pointer;
+  margin-top: 3rem;
+  background: #77aaff;
 }
 
 .modal[data-active="#loading"] section[data-id="loading"],
@@ -265,18 +305,6 @@ main section .list {
 
 main section.done .list {
   bottom: 4rem;
-}
-
-main section button {
-  border-radius: 0;
-  border: none;
-  text-align: center;
-  color: inherit;
-  font-size: inherit;
-  outline: 0;
-  padding: 0;
-  margin: 0;
-  background: transparent;
 }
 
 main section button.back {
