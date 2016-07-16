@@ -33,62 +33,6 @@ code {
   font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
 }
 
-.cog {
-  width: 2em;
-  height: 2em;
-  position: relative;
-  font-size: inherit;
-  border: solid .4em currentColor;
-  border-radius: 50%;
-  color: inherit;
-}
-
-.cog::before,
-.cog::after,
-.cog > div::before,
-.cog > div::after {
-  content: '';
-  display: block;
-  position: absolute;
-  height: .6em;
-  border: solid .4em currentColor;
-  border-top: none;
-  border-bottom: none;
-  top: calc(50% - .3em);
-  left: -.6em;
-  right: -.6em;
-  width: auto;
-  transform-origin: center;
-  border-radius: .2em;
-}
-
-.cog::before { transform: rotate(45deg); }
-.cog::after { transform: rotate(90deg); }
-.cog > div::before { transform: rotate(135deg); }
-
-.cross {
-  position: relative;
-  font-size: inherit;
-  color: inherit;
-  transform: translateX(-.15em) rotate(45deg);
-}
-
-.cross::before {
-  content: '';
-  display: block;
-  position: absolute;
-  transform: rotate(90deg);
-  transform-origin: center;
-}
-
-.cross,
-.cross::before {
-  width: 2.3em;
-  height: .6em;
-  border-radius: .2em;
-  background: currentColor;
-}
-
 aside {
   position: fixed;
   width: auto;
@@ -136,10 +80,15 @@ aside:empty {
 
 .modal section .close {
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 3rem;
   position: fixed;
   top: 2rem;
-  right: 1.5rem;
+  right: 2rem;
+  line-height: 4rem;
+}
+
+.modal section .close::after {
+  content: '╳';
 }
 
 .modal[data-active="#loading"] section[data-id="loading"],
@@ -325,15 +274,20 @@ main section button.clear:hover {
 
 main section .settings {
   cursor: pointer;
-}
-
-main section .settings .cog {
-  font-size: 10px;
-  color: white;
   position: absolute;
-  right: 3rem;
+  left: 1.5rem;
   top: 50%;
   transform: translateY(-50%);
+  height: 3rem;
+  width: 3rem;
+  line-height: 3rem;
+  border-radius: 50%;
+  background: rgba(0,0,0,.5);
+  opacity: .25;
+}
+
+main section .settings:hover {
+  opacity: 1;
 }
 
 main section.today,
@@ -686,6 +640,11 @@ main .item.gu-mirror[data-section-type="done"] {
 
   .standalone main[data-active^="#"] section header {
     padding-top: 1rem;
+  }
+
+  main section .settings {
+    left: auto;
+    right: 1.5rem;
   }
 
   main section button.clear {

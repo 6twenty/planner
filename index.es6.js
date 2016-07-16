@@ -100,7 +100,14 @@ class App {
   }
 
   firebase() {
-    const isAwaitingAuthRedirect = !!sessionStorage.getItem('awaitingAuthRedirect')
+    const anHourAgo = moment().subtract(1, 'hour')
+    const awaitingAuthRedirect = sessionStorage.getItem('awaitingAuthRedirect')
+
+    let isAwaitingAuthRedirect = false
+    if (awaitingAuthRedirect) {
+      isAwaitingAuthRedirect = moment(awaitingAuthRedirect).isAfter(anHourAgo)
+      sessionStorage.removeItem('awaitingAuthRedirect')
+    }
 
     firebase.initializeApp({
       apiKey: "AIzaSyBgNTLh6iZ8itiE0-JaJJqlyUJ4aW4rB3c",
@@ -115,8 +122,9 @@ class App {
         if (user || !isAwaitingAuthRedirect) {
           resolve()
         } else {
-          sessionStorage.removeItem('awaitingAuthRedirect')
-          firebase.auth().getRedirectResult().then(resolve)
+          firebase.auth().getRedirectResult().then(resolve).catch(error => {
+            resolve() // TODO - show a notice?
+          })
         }
       })
 
@@ -124,9 +132,8 @@ class App {
   }
 
   signIn(provider) {
-    sessionStorage.setItem('awaitingAuthRedirect', '1')
-    provider = provider.charAt(0).toUpperCase() + provider.slice(1)
-    const authProvider = new firebase.auth[`${provider}AuthProvider`]()
+    sessionStorage.setItem('awaitingAuthRedirect', moment().format())
+    const authProvider = new firebase.auth[provider]()
     firebase.auth().signInWithRedirect(authProvider)
   }
 
@@ -141,8 +148,17 @@ class App {
   }
 
   init() {
-    if (firebase.auth().currentUser) {
+    const user = firebase.auth().currentUser
+
+    if (user) {
       this.modal.dataset.active = ''
+
+      const settings = this.el.querySelector('.settings')
+      const letter = user.displayName ? user.displayName[0] : '?'
+
+      settings.innerText = letter
+      settings.dataset.profile = user.photoURL
+
       this.list.load()
     } else {
       this.modal.dataset.active = '#providers'
@@ -192,25 +208,18 @@ class App {
 
   buildModalProviders() {
     const section = document.createElement('section')
-    const providers = ['google', 'facebook', 'twitter', 'github']
 
     section.dataset.id = 'providers'
 
-    providers.forEach(provider => {
-      const a = document.createElement('a')
-      const img = document.createElement('img')
-      img.src = `/${provider}.svg`
-      a.classList.add('provider')
-      a.appendChild(img)
-      section.appendChild(a)
+    const a = document.createElement('a')
+    const img = document.createElement('img')
+    img.src = `/google.svg`
+    a.classList.add('provider')
+    a.appendChild(img)
+    section.appendChild(a)
 
-      if (provider === 'github') {
-        a.addEventListener('singletap', e => {
-          this.signIn(provider)
-        })
-      } else {
-        a.style.opacity = 0.5
-      }
+    a.addEventListener('singletap', e => {
+      this.signIn('GoogleAuthProvider')
     })
 
     this.modal.appendChild(section)
@@ -219,11 +228,8 @@ class App {
   buildModalSettings() {
     const section = document.createElement('section')
     const close = document.createElement('a')
-    const cross = document.createElement('div')
 
     close.classList.add('close')
-    cross.classList.add('cross')
-    close.appendChild(cross)
     section.dataset.id = 'settings'
     section.appendChild(close)
 
@@ -673,12 +679,8 @@ class DaySection extends Section {
 
     if (this.date.isSame(today)) {
       const settings = document.createElement('a')
-      const cog = document.createElement('div')
 
-      cog.appendChild(document.createElement('div'))
-      cog.classList.add('cog')
       settings.classList.add('settings')
-      settings.appendChild(cog)
 
       settings.addEventListener('singletap', e => {
         this.list.app.modal.dataset.active = '#settings'

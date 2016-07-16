@@ -68,7 +68,14 @@ var App = function () {
 
       return firebase;
     }(function () {
-      var isAwaitingAuthRedirect = !!sessionStorage.getItem('awaitingAuthRedirect');
+      var anHourAgo = moment().subtract(1, 'hour');
+      var awaitingAuthRedirect = sessionStorage.getItem('awaitingAuthRedirect');
+
+      var isAwaitingAuthRedirect = false;
+      if (awaitingAuthRedirect) {
+        isAwaitingAuthRedirect = moment(awaitingAuthRedirect).isAfter(anHourAgo);
+        sessionStorage.removeItem('awaitingAuthRedirect');
+      }
 
       firebase.initializeApp({
         apiKey: "AIzaSyBgNTLh6iZ8itiE0-JaJJqlyUJ4aW4rB3c",
@@ -83,8 +90,9 @@ var App = function () {
           if (user || !isAwaitingAuthRedirect) {
             resolve();
           } else {
-            sessionStorage.removeItem('awaitingAuthRedirect');
-            firebase.auth().getRedirectResult().then(resolve);
+            firebase.auth().getRedirectResult().then(resolve).catch(function (error) {
+              resolve(); // TODO - show a notice?
+            });
           }
         });
       });
@@ -92,9 +100,8 @@ var App = function () {
   }, {
     key: 'signIn',
     value: function signIn(provider) {
-      sessionStorage.setItem('awaitingAuthRedirect', '1');
-      provider = provider.charAt(0).toUpperCase() + provider.slice(1);
-      var authProvider = new firebase.auth[provider + 'AuthProvider']();
+      sessionStorage.setItem('awaitingAuthRedirect', moment().format());
+      var authProvider = new firebase.auth[provider]();
       firebase.auth().signInWithRedirect(authProvider);
     }
   }, {
@@ -112,8 +119,17 @@ var App = function () {
   }, {
     key: 'init',
     value: function init() {
-      if (firebase.auth().currentUser) {
+      var user = firebase.auth().currentUser;
+
+      if (user) {
         this.modal.dataset.active = '';
+
+        var settings = this.el.querySelector('.settings');
+        var letter = user.displayName ? user.displayName[0] : '?';
+
+        settings.innerText = letter;
+        settings.dataset.profile = user.photoURL;
+
         this.list.load();
       } else {
         this.modal.dataset.active = '#providers';
@@ -171,25 +187,18 @@ var App = function () {
       var _this = this;
 
       var section = document.createElement('section');
-      var providers = ['google', 'facebook', 'twitter', 'github'];
 
       section.dataset.id = 'providers';
 
-      providers.forEach(function (provider) {
-        var a = document.createElement('a');
-        var img = document.createElement('img');
-        img.src = '/' + provider + '.svg';
-        a.classList.add('provider');
-        a.appendChild(img);
-        section.appendChild(a);
+      var a = document.createElement('a');
+      var img = document.createElement('img');
+      img.src = '/google.svg';
+      a.classList.add('provider');
+      a.appendChild(img);
+      section.appendChild(a);
 
-        if (provider === 'github') {
-          a.addEventListener('singletap', function (e) {
-            _this.signIn(provider);
-          });
-        } else {
-          a.style.opacity = 0.5;
-        }
+      a.addEventListener('singletap', function (e) {
+        _this.signIn('GoogleAuthProvider');
       });
 
       this.modal.appendChild(section);
@@ -201,11 +210,8 @@ var App = function () {
 
       var section = document.createElement('section');
       var close = document.createElement('a');
-      var cross = document.createElement('div');
 
       close.classList.add('close');
-      cross.classList.add('cross');
-      close.appendChild(cross);
       section.dataset.id = 'settings';
       section.appendChild(close);
 
@@ -788,12 +794,8 @@ var DaySection = function (_Section) {
 
       if (this.date.isSame(today)) {
         var settings = document.createElement('a');
-        var cog = document.createElement('div');
 
-        cog.appendChild(document.createElement('div'));
-        cog.classList.add('cog');
         settings.classList.add('settings');
-        settings.appendChild(cog);
 
         settings.addEventListener('singletap', function (e) {
           _this12.list.app.modal.dataset.active = '#settings';
