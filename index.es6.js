@@ -694,6 +694,10 @@ class DaySection extends Section {
     const today = moment().startOf('day')
     let day = this.date.format('dddd')
 
+    if (today.day() === 0) {
+      today.subtract(1, 'day')
+    }
+
     if (this.date.isSame(today)) {
       day = 'today'
     }

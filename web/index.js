@@ -809,6 +809,10 @@ var DaySection = function (_Section) {
       var today = moment().startOf('day');
       var day = this.date.format('dddd');
 
+      if (today.day() === 0) {
+        today.subtract(1, 'day');
+      }
+
       if (this.date.isSame(today)) {
         day = 'today';
       }
