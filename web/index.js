@@ -128,7 +128,10 @@ var App = function () {
         var letter = user.displayName ? user.displayName[0] : '?';
 
         settings.innerText = letter;
-        settings.dataset.profile = user.photoURL;
+
+        if (user.photoURL) {
+          settings.style.backgroundImage = 'url(' + user.photoURL + ')';
+        }
 
         this.list.load();
       } else {

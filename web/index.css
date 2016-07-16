@@ -93,11 +93,11 @@ aside:empty {
 
 .modal section .close {
   cursor: pointer;
-  font-size: 3rem;
+  font-size: 2rem;
   position: fixed;
   top: 2rem;
   right: 2rem;
-  line-height: 4rem;
+  line-height: 2rem;
 }
 
 .modal section .close::after {
@@ -317,13 +317,18 @@ main section .settings {
   height: 3rem;
   width: 3rem;
   line-height: 3rem;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(0,0,0,.5);
+  border: solid .2rem white;
   border-radius: 50%;
-  background: rgba(0,0,0,.5);
-  opacity: .25;
+  overflow: hidden;
 }
 
-main section .settings:hover {
-  opacity: 1;
+main section .settings[style] {
+  color: transparent;
+  text-indent: 3rem;
+  background-color: white;
 }
 
 main section.today,
