@@ -181,7 +181,7 @@ aside:empty {
 .loading:after {
   border: .2em solid transparent;
   border-radius: 50%;
-  border-top-color: rgba(25,255,255,0.6);
+  border-top-color: #77aaff;
   margin: auto;
 }
 

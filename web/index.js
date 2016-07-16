@@ -100,6 +100,7 @@ var App = function () {
   }, {
     key: 'signIn',
     value: function signIn(provider) {
+      this.modal.dataset.active = '#loading';
       sessionStorage.setItem('awaitingAuthRedirect', moment().format());
       var authProvider = new firebase.auth[provider]();
       firebase.auth().signInWithRedirect(authProvider);

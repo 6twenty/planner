@@ -132,6 +132,7 @@ class App {
   }
 
   signIn(provider) {
+    this.modal.dataset.active = '#loading'
     sessionStorage.setItem('awaitingAuthRedirect', moment().format())
     const authProvider = new firebase.auth[provider]()
     firebase.auth().signInWithRedirect(authProvider)
