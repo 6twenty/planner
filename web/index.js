@@ -79,6 +79,8 @@ var App = function () {
 
       firebase.initializeApp(this.config);
 
+      this.db = firebase.database();
+
       return new Promise(function (resolve, reject) {
 
         firebase.auth().onAuthStateChanged(function (user) {
@@ -786,6 +788,7 @@ var Section = function () {
     key: 'createItem',
     value: function createItem(opts) {
       opts.section = this;
+      opts.persisted = false;
 
       var item = new Item(opts).build();
 
@@ -1049,6 +1052,7 @@ var Item = function () {
     this._section = opts.section;
     this._content = opts.content || '';
     this.list = this._section.list;
+    this.persisted = opts.persisted;
 
     // Explicit bindings
     this.onDblClick = this.onDblClick.bind(this);
@@ -1116,7 +1120,8 @@ var Item = function () {
     value: function remove() {
       this.detach();
       delete this.list.items[this.id];
-      this.list.save();
+      // this.list.save()
+      this.delete();
     }
   }, {
     key: 'show',
@@ -1154,13 +1159,16 @@ var Item = function () {
     key: 'finishEditing',
     value: function finishEditing() {
       this.editing = false;
-      this.content = this.el.innerText;
       this.el.contentEditable = 'false';
-      this.el.innerHTML = App.markdown(this.content);
       this.el.removeEventListener('blur', this.onBlur);
       this.el.removeEventListener('paste', this.onPaste);
 
-      if (this.el.innerText.replace(/\s/g, '') === '') {
+      var content = this.el.innerText.replace(/\s/g, '');
+
+      if (content) {
+        this.content = content;
+        this.el.innerHTML = App.markdown(content);
+      } else {
         return this.remove();
       }
 
@@ -1181,6 +1189,38 @@ var Item = function () {
       this.el.addEventListener('touchend', this.onTouchEnd);
       this.el.addEventListener('touchcancel', this.onTouchEnd);
       this.el.addEventListener('mousedown', this.onMouseMove);
+    }
+  }, {
+    key: 'updateSection',
+    value: function updateSection() {
+      var user = firebase.auth().currentUser;
+      var itemsRef = this.list.app.db.ref('users/' + user.uid + '/items');
+      var itemRef = itemsRef.child(this.key);
+      itemRef.update({ group: this.section.id });
+    }
+  }, {
+    key: 'updateContent',
+    value: function updateContent() {
+      var user = firebase.auth().currentUser;
+      var itemsRef = this.list.app.db.ref('users/' + user.uid + '/items');
+
+      if (this.persisted) {
+        var itemRef = itemsRef.child(this.key);
+        itemRef.update({ content: this.content });
+      } else {
+        var _itemRef = itemsRef.push();
+        this.key = _itemRef.key;
+        this.persisted = true;
+        _itemRef.set(this.toJSON());
+      }
+    }
+  }, {
+    key: 'delete',
+    value: function _delete() {
+      var user = firebase.auth().currentUser;
+      var itemsRef = this.list.app.db.ref('users/' + user.uid + '/items');
+      var itemRef = itemsRef.child(this.key);
+      itemRef.remove();
     }
   }, {
     key: 'focus',
@@ -1278,7 +1318,8 @@ var Item = function () {
     set: function set(value) {
       this._section = value;
       this.el.dataset.sectionId = value.name;
-      this.list.save();
+      // this.list.save()
+      this.updateSection();
     }
   }, {
     key: 'content',
@@ -1287,7 +1328,8 @@ var Item = function () {
     },
     set: function set(value) {
       this._content = value;
-      this.list.save();
+      // this.list.save()
+      this.updateContent();
     }
   }]);
 

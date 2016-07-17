@@ -147,6 +147,8 @@ class App {
 
     firebase.initializeApp(this.config)
 
+    this.db = firebase.database()
+
     return new Promise((resolve, reject) => {
 
       firebase.auth().onAuthStateChanged(user => {
@@ -680,6 +682,7 @@ class Section {
 
   createItem(opts) {
     opts.section = this
+    opts.persisted = false
 
     const item = new Item(opts).build()
 
@@ -885,6 +888,7 @@ class Item {
     this._section = opts.section
     this._content = opts.content || ''
     this.list = this._section.list
+    this.persisted = opts.persisted
 
     // Explicit bindings
     this.onDblClick = this.onDblClick.bind(this)
@@ -913,7 +917,8 @@ class Item {
   set section(value) {
     this._section = value
     this.el.dataset.sectionId = value.name
-    this.list.save()
+    // this.list.save()
+    this.updateSection()
   }
 
   get content() {
@@ -922,7 +927,8 @@ class Item {
 
   set content(value) {
     this._content = value
-    this.list.save()
+    // this.list.save()
+    this.updateContent()
   }
 
   toJSON() {
@@ -974,7 +980,8 @@ class Item {
   remove() {
     this.detach()
     delete this.list.items[this.id]
-    this.list.save()
+    // this.list.save()
+    this.delete()
   }
 
   show() {
@@ -1008,13 +1015,16 @@ class Item {
 
   finishEditing() {
     this.editing = false
-    this.content = this.el.innerText
     this.el.contentEditable = 'false'
-    this.el.innerHTML = App.markdown(this.content)
     this.el.removeEventListener('blur', this.onBlur)
     this.el.removeEventListener('paste', this.onPaste)
 
-    if (this.el.innerText.replace(/\s/g, '') === '') {
+    const content = this.el.innerText.replace(/\s/g, '')
+
+    if (content) {
+      this.content = content
+      this.el.innerHTML = App.markdown(content)
+    } else {
       return this.remove()
     }
 
@@ -1033,6 +1043,35 @@ class Item {
     this.el.addEventListener('touchend', this.onTouchEnd)
     this.el.addEventListener('touchcancel', this.onTouchEnd)
     this.el.addEventListener('mousedown', this.onMouseMove)
+  }
+
+  updateSection() {
+    const user = firebase.auth().currentUser
+    const itemsRef = this.list.app.db.ref(`users/${user.uid}/items`)
+    const itemRef = itemsRef.child(this.key)
+    itemRef.update({ group: this.section.id })
+  }
+
+  updateContent() {
+    const user = firebase.auth().currentUser
+    const itemsRef = this.list.app.db.ref(`users/${user.uid}/items`)
+
+    if (this.persisted) {
+      const itemRef = itemsRef.child(this.key)
+      itemRef.update({ content: this.content })
+    } else {
+      const itemRef = itemsRef.push()
+      this.key = itemRef.key
+      this.persisted = true
+      itemRef.set(this.toJSON())
+    }
+  }
+
+  delete() {
+    const user = firebase.auth().currentUser
+    const itemsRef = this.list.app.db.ref(`users/${user.uid}/items`)
+    const itemRef = itemsRef.child(this.key)
+    itemRef.remove()
   }
 
   focus() {
