@@ -1071,9 +1071,9 @@ class Item {
     this.el.removeEventListener('blur', this.onBlur)
     this.el.removeEventListener('paste', this.onPaste)
 
-    const content = this.el.innerText.replace(/\s/g, '')
+    const content = this.el.innerText
 
-    if (content) {
+    if (content.replace(/\s/g, '')) {
       this.content = content
       this.el.innerHTML = App.markdown(content)
     } else {

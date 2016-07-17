@@ -1197,9 +1197,9 @@ var Item = function () {
       this.el.removeEventListener('blur', this.onBlur);
       this.el.removeEventListener('paste', this.onPaste);
 
-      var content = this.el.innerText.replace(/\s/g, '');
+      var content = this.el.innerText;
 
-      if (content) {
+      if (content.replace(/\s/g, '')) {
         this.content = content;
         this.el.innerHTML = App.markdown(content);
       } else {
