@@ -241,8 +241,6 @@ class App {
     this.modal = document.createElement('div')
     this.modal.classList.add('modal')
 
-    // this.modal.dataset.active = '#providers'
-
     this.buildModalLoading()
     this.buildModalProviders()
     this.buildModalSettings()
@@ -303,14 +301,6 @@ class App {
     })
 
     this.modal.appendChild(section)
-  }
-
-  renderInlineSVG(path, viewbox) {
-    return `
-      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="${viewbox}" class="svg-path">
-        <path d="${path}">
-      </svg>
-    `
   }
 
   hammer() {
@@ -374,6 +364,27 @@ class App {
       }
     })
 
+  }
+
+  load(cached) {
+    const updates = cached.reduce((items, item) => {
+      let section = this.list.sectionById[item.group]
+
+      if (!section) {
+        section = this.list.sectionById.overdue
+      }
+
+      const ref = this.list.app.db.push()
+
+      items[ref.key] = section.createItem({
+        key: ref.key,
+        content: item.content
+      }).toJSON()
+
+      return items
+    }, {})
+
+    this.db.update(updates)
   }
 
 }
@@ -557,17 +568,6 @@ class List {
     this.app.el.appendChild(this.el)
   }
 
-  // save() {
-  //   // Get order from the DOM
-  //   const els = this.el.querySelectorAll('.item:not(.gu-mirror)')
-  //   const ids = [...els].map(el => { return el.dataset.id })
-  //   const items = ids.map(id => { return this.items[id] })
-  //   const stringified = JSON.stringify(items)
-  //
-  //   this._stored = null
-  //   localStorage.setItem('items', stringified)
-  // }
-
   filter() {
     const regex = new RegExp(App.escapeRegex(this.app.filtered), 'i')
 
@@ -691,6 +691,8 @@ class Section {
     item.render()
 
     this.list.items[item.id] = item
+
+    return item
   }
 
   reorderFromIndex(index) {
@@ -1031,7 +1033,6 @@ class Item {
     this.detach()
     delete this.list.items[this.id]
     this.section.reorderFromDOM()
-    // this.list.save()
     this.delete()
   }
 

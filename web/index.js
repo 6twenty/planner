@@ -171,8 +171,6 @@ var App = function () {
       this.modal = document.createElement('div');
       this.modal.classList.add('modal');
 
-      // this.modal.dataset.active = '#providers'
-
       this.buildModalLoading();
       this.buildModalProviders();
       this.buildModalSettings();
@@ -242,11 +240,6 @@ var App = function () {
       this.modal.appendChild(section);
     }
   }, {
-    key: 'renderInlineSVG',
-    value: function renderInlineSVG(path, viewbox) {
-      return '\n      <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="' + viewbox + '" class="svg-path">\n        <path d="' + path + '">\n      </svg>\n    ';
-    }
-  }, {
     key: 'hammer',
     value: function hammer() {
       this.hammer = new Hammer.Manager(this.el, { domEvents: true });
@@ -312,6 +305,30 @@ var App = function () {
           _this4.filtered = _this4.filtered.slice(0, _this4.filtered.length - 1);
         }
       });
+    }
+  }, {
+    key: 'load',
+    value: function load(cached) {
+      var _this5 = this;
+
+      var updates = cached.reduce(function (items, item) {
+        var section = _this5.list.sectionById[item.group];
+
+        if (!section) {
+          section = _this5.list.sectionById.overdue;
+        }
+
+        var ref = _this5.list.app.db.push();
+
+        items[ref.key] = section.createItem({
+          key: ref.key,
+          content: item.content
+        }).toJSON();
+
+        return items;
+      }, {});
+
+      this.db.update(updates);
     }
   }, {
     key: 'filtered',
@@ -449,7 +466,7 @@ var List = function () {
   _createClass(List, [{
     key: 'build',
     value: function build() {
-      var _this5 = this;
+      var _this6 = this;
 
       this.sections = []; // Ordered, for rendering sequentially
       this.sectionById = {}; // For easy lookup
@@ -471,28 +488,28 @@ var List = function () {
         }
 
         var section = new DaySection({
-          list: _this5,
+          list: _this6,
           date: date,
           sectionId: day
         }).build();
 
-        section.render(_this5.el);
+        section.render(_this6.el);
 
-        _this5.sections.push(section);
-        _this5.sectionById[section.id] = section;
+        _this6.sections.push(section);
+        _this6.sectionById[section.id] = section;
       });
 
       var sectionClasses = [WeekSection, MonthSection, BacklogSection, OverdueSection, DoneSection];
 
       sectionClasses.forEach(function (SectionClass) {
         var section = new SectionClass({
-          list: _this5
+          list: _this6
         }).build();
 
-        section.render(_this5.el);
+        section.render(_this6.el);
 
-        _this5.sections.push(section);
-        _this5.sectionById[section.id] = section;
+        _this6.sections.push(section);
+        _this6.sectionById[section.id] = section;
       });
 
       this.dragula();
@@ -512,7 +529,7 @@ var List = function () {
 
       return dragula;
     }(function () {
-      var _this6 = this;
+      var _this7 = this;
 
       var lists = this.sections.map(function (section) {
         return section.listEl;
@@ -534,7 +551,7 @@ var List = function () {
             return false;
           }
 
-          var item = _this6.items[el.dataset.id];
+          var item = _this7.items[el.dataset.id];
 
           if (item.editing) {
             return false;
@@ -543,7 +560,7 @@ var List = function () {
           return true;
         },
         accepts: function accepts(el, target, source, sibling) {
-          var section = _this6.sectionById[target.parentElement.dataset.id];
+          var section = _this7.sectionById[target.parentElement.dataset.id];
           var active = section.list.el.querySelector('section.over');
 
           if (active) {
@@ -551,7 +568,7 @@ var List = function () {
           }
 
           section.el.classList.add('over');
-          _this6.el.dataset.active = '#' + section.sectionId;
+          _this7.el.dataset.active = '#' + section.sectionId;
 
           if (target.nodeName === 'HEADER') {
             if (target.parentElement === el.parentElement.parentElement) {
@@ -568,12 +585,12 @@ var List = function () {
       });
 
       this.drake.on('drag', function (el) {
-        _this6.originalSectionId = el.parentElement.parentElement.dataset.sectionId;
+        _this7.originalSectionId = el.parentElement.parentElement.dataset.sectionId;
         el.parentElement.parentElement.classList.add('over');
       });
 
       this.drake.on('dragend', function (el) {
-        var active = _this6.el.querySelector('section.over');
+        var active = _this7.el.querySelector('section.over');
 
         if (active) {
           active.classList.remove('over');
@@ -581,8 +598,8 @@ var List = function () {
       });
 
       this.drake.on('drop', function (el, target, source, sibling) {
-        var item = _this6.items[el.dataset.id];
-        var section = _this6.sectionById[target.parentElement.dataset.id];
+        var item = _this7.items[el.dataset.id];
+        var section = _this7.sectionById[target.parentElement.dataset.id];
         item.section = section;
       });
 
@@ -592,14 +609,14 @@ var List = function () {
       });
 
       this.drake.on('shadow', function (el, container, source) {
-        var mirror = _this6.el.querySelector('.item.gu-mirror');
+        var mirror = _this7.el.querySelector('.item.gu-mirror');
         mirror.dataset.sectionType = container.parentElement.dataset.name;
       });
     })
   }, {
     key: 'loadItems',
     value: function loadItems(snapshot) {
-      var _this7 = this;
+      var _this8 = this;
 
       var items = snapshot.val() || {};
       var keys = Object.keys(items);
@@ -607,10 +624,10 @@ var List = function () {
       keys.forEach(function (key) {
         var item = items[key];
 
-        var section = _this7.sectionById[item.group];
+        var section = _this8.sectionById[item.group];
 
         if (!section) {
-          section = _this7.sectionById.overdue;
+          section = _this8.sectionById.overdue;
         }
 
         section.createItem({
@@ -623,16 +640,16 @@ var List = function () {
   }, {
     key: 'unload',
     value: function unload() {
-      var _this8 = this;
+      var _this9 = this;
 
       var ids = Object.keys(this.items);
 
       ids.forEach(function (id) {
-        var item = _this8.items[id];
+        var item = _this9.items[id];
 
         item.detach();
 
-        delete _this8.items[id];
+        delete _this9.items[id];
       });
     }
   }, {
@@ -640,27 +657,15 @@ var List = function () {
     value: function render() {
       this.app.el.appendChild(this.el);
     }
-
-    // save() {
-    //   // Get order from the DOM
-    //   const els = this.el.querySelectorAll('.item:not(.gu-mirror)')
-    //   const ids = [...els].map(el => { return el.dataset.id })
-    //   const items = ids.map(id => { return this.items[id] })
-    //   const stringified = JSON.stringify(items)
-    //
-    //   this._stored = null
-    //   localStorage.setItem('items', stringified)
-    // }
-
   }, {
     key: 'filter',
     value: function filter() {
-      var _this9 = this;
+      var _this10 = this;
 
       var regex = new RegExp(App.escapeRegex(this.app.filtered), 'i');
 
       Object.keys(this.items).forEach(function (id) {
-        var item = _this9.items[id];
+        var item = _this10.items[id];
 
         if (regex.test(item.content)) {
           item.show();
@@ -694,7 +699,7 @@ var Section = function () {
   _createClass(Section, [{
     key: 'build',
     value: function build() {
-      var _this10 = this;
+      var _this11 = this;
 
       var section = document.createElement('section');
       var header = document.createElement('header');
@@ -722,11 +727,11 @@ var Section = function () {
       this.listEl = list;
 
       this.el.addEventListener('doubletap', function (e) {
-        if (e.target !== _this10.listEl && e.target !== _this10.header) return;
+        if (e.target !== _this11.listEl && e.target !== _this11.header) return;
 
-        var first = e.target !== _this10.listEl;
+        var first = e.target !== _this11.listEl;
 
-        _this10.createItem({
+        _this11.createItem({
           edit: true,
           first: first
         });
@@ -735,13 +740,13 @@ var Section = function () {
       header.addEventListener('singletap', function (e) {
         if (e.target !== header) return;
 
-        _this10.list.el.dataset.active = '#' + _this10.sectionId;
+        _this11.list.el.dataset.active = '#' + _this11.sectionId;
       });
 
       back.addEventListener('singletap', function (e) {
         if (e.target !== back) return;
 
-        _this10.list.el.dataset.active = '';
+        _this11.list.el.dataset.active = '';
       });
 
       return this;
@@ -773,6 +778,8 @@ var Section = function () {
       item.render();
 
       this.list.items[item.id] = item;
+
+      return item;
     }
   }, {
     key: 'reorderFromIndex',
@@ -786,14 +793,14 @@ var Section = function () {
   }, {
     key: 'reorderFromDOM',
     value: function reorderFromDOM() {
-      var _this11 = this;
+      var _this12 = this;
 
       var els = this.el.querySelectorAll('.item:not(.gu-mirror)');
       var ids = [].concat(_toConsumableArray(els)).map(function (el) {
         return el.dataset.id;
       });
       var items = ids.map(function (id) {
-        return _this11.list.items[id];
+        return _this12.list.items[id];
       });
 
       items.reduce(function (n, item) {
@@ -805,14 +812,14 @@ var Section = function () {
   }, {
     key: 'items',
     get: function get() {
-      var _this12 = this;
+      var _this13 = this;
 
       var keys = Object.keys(this.list.items);
 
       return keys.reduce(function (items, key) {
-        var item = _this12.list.items[key];
+        var item = _this13.list.items[key];
 
-        if (item.section === _this12) {
+        if (item.section === _this13) {
           items.push(item);
         }
 
@@ -845,29 +852,29 @@ var DaySection = function (_Section) {
     opts.id = date.format('YYYY-MM-DD');
     opts.name = 'day';
 
-    var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
+    var _this14 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
 
-    _this13.date = date;
-    _this13.title = date.format('dddd');
+    _this14.date = date;
+    _this14.title = date.format('dddd');
 
     if (isSaturday) {
-      _this13.classes.add('weekend');
+      _this14.classes.add('weekend');
     }
 
     if (isToday && isSaturday) {
-      _this13.title = 'This weekend';
+      _this14.title = 'This weekend';
     } else if (isToday) {
-      _this13.title = 'Today';
+      _this14.title = 'Today';
     } else if (isSaturday) {
-      _this13.title = 'Weekend';
+      _this14.title = 'Weekend';
     }
-    return _this13;
+    return _this14;
   }
 
   _createClass(DaySection, [{
     key: 'build',
     value: function build() {
-      var _this14 = this;
+      var _this15 = this;
 
       _get(Object.getPrototypeOf(DaySection.prototype), 'build', this).call(this);
 
@@ -894,7 +901,7 @@ var DaySection = function (_Section) {
         settings.classList.add('settings');
 
         settings.addEventListener('singletap', function (e) {
-          _this14.list.app.modal.dataset.active = '#settings';
+          _this15.list.app.modal.dataset.active = '#settings';
         });
 
         this.header.appendChild(settings);
@@ -920,10 +927,10 @@ var WeekSection = function (_Section2) {
     opts.name = 'week';
     opts.sectionId = 'week';
 
-    var _this15 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
+    var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
 
-    _this15.title = 'This week';
-    return _this15;
+    _this16.title = 'This week';
+    return _this16;
   }
 
   _createClass(WeekSection, [{
@@ -956,10 +963,10 @@ var MonthSection = function (_Section3) {
     opts.name = 'month';
     opts.sectionId = 'month';
 
-    var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
+    var _this17 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
 
-    _this16.title = 'This month';
-    return _this16;
+    _this17.title = 'This month';
+    return _this17;
   }
 
   _createClass(MonthSection, [{
@@ -997,7 +1004,7 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'build',
     value: function build() {
-      var _this18 = this;
+      var _this19 = this;
 
       _get(Object.getPrototypeOf(DoneSection.prototype), 'build', this).call(this);
 
@@ -1008,7 +1015,7 @@ var DoneSection = function (_Section4) {
       this.el.appendChild(button);
 
       button.addEventListener('singletap', function (e) {
-        _this18.clear();
+        _this19.clear();
       });
 
       return this;
@@ -1016,11 +1023,11 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'clear',
     value: function clear() {
-      var _this19 = this;
+      var _this20 = this;
 
       Object.keys(this.list.items).forEach(function (id) {
-        var item = _this19.list.items[id];
-        if (item.section.id === _this19.id) {
+        var item = _this20.list.items[id];
+        if (item.section.id === _this20.id) {
           item.remove();
         }
       });
@@ -1148,7 +1155,6 @@ var Item = function () {
       this.detach();
       delete this.list.items[this.id];
       this.section.reorderFromDOM();
-      // this.list.save()
       this.delete();
     }
   }, {
@@ -1302,16 +1308,16 @@ var Item = function () {
   }, {
     key: 'onTouchStart',
     value: function onTouchStart(e) {
-      var _this22 = this;
+      var _this23 = this;
 
       if ('_allowDrag' in this) return;
 
       App.canDrag = false;
 
       this._timer = setTimeout(function () {
-        _this22._allowDrag = App.canDrag = true;
-        _this22.el.dispatchEvent(e);
-        delete _this22._allowDrag;
+        _this23._allowDrag = App.canDrag = true;
+        _this23.el.dispatchEvent(e);
+        delete _this23._allowDrag;
       }, 500);
     }
   }, {
