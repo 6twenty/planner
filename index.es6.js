@@ -910,7 +910,7 @@ class Item {
     this._section = opts.section
     this._content = opts.content || ''
     this.list = this._section.list
-    this.order = opts.order
+    this._order = opts.order
     this.key = opts.key
 
     // Explicit bindings
@@ -933,6 +933,20 @@ class Item {
     this.list.app.editing = value
   }
 
+  get order() {
+    return this._order
+  }
+
+  set order(value) {
+    const previous = this._order
+
+    this._order = value
+
+    if (previous !== value) {
+      this.updateOrder()
+    }
+  }
+
   get section () {
     return this._section
   }
@@ -945,6 +959,10 @@ class Item {
 
     if (previous !== value) {
       this.updateSection()
+      previous.reorderFromDOM()
+      value.reorderFromDOM()
+    } else {
+      value.reorderFromDOM()
     }
   }
 
@@ -1076,6 +1094,12 @@ class Item {
     this.el.addEventListener('touchend', this.onTouchEnd)
     this.el.addEventListener('touchcancel', this.onTouchEnd)
     this.el.addEventListener('mousedown', this.onMouseMove)
+  }
+
+  updateOrder() {
+    if (!this.key) return
+    const ref = this.list.app.db.child(this.key)
+    ref.update({ order: this.order })
   }
 
   updateSection() {

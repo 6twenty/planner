@@ -1077,7 +1077,7 @@ var Item = function () {
     this._section = opts.section;
     this._content = opts.content || '';
     this.list = this._section.list;
-    this.order = opts.order;
+    this._order = opts.order;
     this.key = opts.key;
 
     // Explicit bindings
@@ -1219,6 +1219,13 @@ var Item = function () {
       this.el.addEventListener('mousedown', this.onMouseMove);
     }
   }, {
+    key: 'updateOrder',
+    value: function updateOrder() {
+      if (!this.key) return;
+      var ref = this.list.app.db.child(this.key);
+      ref.update({ order: this.order });
+    }
+  }, {
     key: 'updateSection',
     value: function updateSection() {
       if (!this.key) return;
@@ -1333,6 +1340,20 @@ var Item = function () {
       this.list.app.editing = value;
     }
   }, {
+    key: 'order',
+    get: function get() {
+      return this._order;
+    },
+    set: function set(value) {
+      var previous = this._order;
+
+      this._order = value;
+
+      if (previous !== value) {
+        this.updateOrder();
+      }
+    }
+  }, {
     key: 'section',
     get: function get() {
       return this._section;
@@ -1345,6 +1366,10 @@ var Item = function () {
 
       if (previous !== value) {
         this.updateSection();
+        previous.reorderFromDOM();
+        value.reorderFromDOM();
+      } else {
+        value.reorderFromDOM();
       }
     }
   }, {
