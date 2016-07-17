@@ -938,10 +938,14 @@ class Item {
   }
 
   set section(value) {
+    const previous = this._section
+
     this._section = value
     this.el.dataset.sectionId = value.name
-    // this.list.save()
-    this.updateSection()
+
+    if (previous !== value) {
+      this.updateSection()
+    }
   }
 
   get content() {
@@ -949,9 +953,13 @@ class Item {
   }
 
   set content(value) {
+    const previous = this._content
+
     this._content = value
-    // this.list.save()
-    this.updateContent()
+
+    if (previous !== value) {
+      this.updateContent()
+    }
   }
 
   toJSON() {

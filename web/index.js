@@ -1338,10 +1338,14 @@ var Item = function () {
       return this._section;
     },
     set: function set(value) {
+      var previous = this._section;
+
       this._section = value;
       this.el.dataset.sectionId = value.name;
-      // this.list.save()
-      this.updateSection();
+
+      if (previous !== value) {
+        this.updateSection();
+      }
     }
   }, {
     key: 'content',
@@ -1349,9 +1353,13 @@ var Item = function () {
       return this._content;
     },
     set: function set(value) {
+      var previous = this._content;
+
       this._content = value;
-      // this.list.save()
-      this.updateContent();
+
+      if (previous !== value) {
+        this.updateContent();
+      }
     }
   }]);
 
