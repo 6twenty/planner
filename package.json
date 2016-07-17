@@ -5,9 +5,9 @@
   "main": "",
   "scripts": {
     "js": "babel index.es6.js -o web/index.js -s",
-    "prejs": "rm web/index.js",
+    "prejs": "rm web/index.js || true",
     "css": "autoprefixer-cli -o web/index.css index.raw.css",
-    "precss": "rm web/index.css",
+    "precss": "rm web/index.css || true",
     "prep": "npm run js -S && npm run css -S",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

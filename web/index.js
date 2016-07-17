@@ -597,7 +597,7 @@ var List = function () {
     value: function loadItems(snapshot) {
       var _this6 = this;
 
-      var items = snapshot.val();
+      var items = snapshot.val() || {};
       var keys = Object.keys(items);
 
       keys.forEach(function (key) {
@@ -760,6 +760,25 @@ var Section = function () {
 
       this.list.items[item.id] = item;
     }
+  }, {
+    key: 'items',
+    get: function get() {
+      var _this10 = this;
+
+      var keys = Object.keys(this.list.items);
+
+      return keys.reduce(function (items, key) {
+        var item = _this10.list.items[key];
+
+        if (item.section === _this10) {
+          items.push(item);
+        }
+
+        return items;
+      }, []).sort(function (a, b) {
+        return a.order - b.order;
+      });
+    }
   }]);
 
   return Section;
@@ -784,29 +803,29 @@ var DaySection = function (_Section) {
     opts.id = date.format('YYYY-MM-DD');
     opts.name = 'day';
 
-    var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
+    var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
 
-    _this10.date = date;
-    _this10.title = date.format('dddd');
+    _this11.date = date;
+    _this11.title = date.format('dddd');
 
     if (isSaturday) {
-      _this10.classes.add('weekend');
+      _this11.classes.add('weekend');
     }
 
     if (isToday && isSaturday) {
-      _this10.title = 'This weekend';
+      _this11.title = 'This weekend';
     } else if (isToday) {
-      _this10.title = 'Today';
+      _this11.title = 'Today';
     } else if (isSaturday) {
-      _this10.title = 'Weekend';
+      _this11.title = 'Weekend';
     }
-    return _this10;
+    return _this11;
   }
 
   _createClass(DaySection, [{
     key: 'build',
     value: function build() {
-      var _this11 = this;
+      var _this12 = this;
 
       _get(Object.getPrototypeOf(DaySection.prototype), 'build', this).call(this);
 
@@ -833,7 +852,7 @@ var DaySection = function (_Section) {
         settings.classList.add('settings');
 
         settings.addEventListener('singletap', function (e) {
-          _this11.list.app.modal.dataset.active = '#settings';
+          _this12.list.app.modal.dataset.active = '#settings';
         });
 
         this.header.appendChild(settings);
@@ -859,10 +878,10 @@ var WeekSection = function (_Section2) {
     opts.name = 'week';
     opts.sectionId = 'week';
 
-    var _this12 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
+    var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
 
-    _this12.title = 'This week';
-    return _this12;
+    _this13.title = 'This week';
+    return _this13;
   }
 
   _createClass(WeekSection, [{
@@ -895,10 +914,10 @@ var MonthSection = function (_Section3) {
     opts.name = 'month';
     opts.sectionId = 'month';
 
-    var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
+    var _this14 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
 
-    _this13.title = 'This month';
-    return _this13;
+    _this14.title = 'This month';
+    return _this14;
   }
 
   _createClass(MonthSection, [{
@@ -936,7 +955,7 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'build',
     value: function build() {
-      var _this15 = this;
+      var _this16 = this;
 
       _get(Object.getPrototypeOf(DoneSection.prototype), 'build', this).call(this);
 
@@ -947,7 +966,7 @@ var DoneSection = function (_Section4) {
       this.el.appendChild(button);
 
       button.addEventListener('singletap', function (e) {
-        _this15.clear();
+        _this16.clear();
       });
 
       return this;
@@ -955,11 +974,11 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'clear',
     value: function clear() {
-      var _this16 = this;
+      var _this17 = this;
 
       Object.keys(this.list.items).forEach(function (id) {
-        var item = _this16.list.items[id];
-        if (item.section.id === _this16.id) {
+        var item = _this17.list.items[id];
+        if (item.section.id === _this17.id) {
           item.remove();
         }
       });
@@ -1157,6 +1176,7 @@ var Item = function () {
   }, {
     key: 'updateSection',
     value: function updateSection() {
+      if (!this.key) return;
       var ref = this.list.app.db.child(this.key);
       ref.update({ group: this.section.id });
     }
@@ -1175,6 +1195,7 @@ var Item = function () {
   }, {
     key: 'delete',
     value: function _delete() {
+      if (!this.key) return;
       var ref = this.list.app.db.child(this.key);
       ref.remove();
     }
@@ -1229,16 +1250,16 @@ var Item = function () {
   }, {
     key: 'onTouchStart',
     value: function onTouchStart(e) {
-      var _this19 = this;
+      var _this20 = this;
 
       if ('_allowDrag' in this) return;
 
       App.canDrag = false;
 
       this._timer = setTimeout(function () {
-        _this19._allowDrag = App.canDrag = true;
-        _this19.el.dispatchEvent(e);
-        delete _this19._allowDrag;
+        _this20._allowDrag = App.canDrag = true;
+        _this20.el.dispatchEvent(e);
+        delete _this20._allowDrag;
       }, 500);
     }
   }, {

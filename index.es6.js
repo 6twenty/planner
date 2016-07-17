@@ -519,7 +519,7 @@ class List {
   }
 
   loadItems(snapshot) {
-    const items = snapshot.val()
+    const items = snapshot.val() || {}
     const keys = Object.keys(items)
 
     keys.forEach(key => {
@@ -593,6 +593,22 @@ class Section {
     this.classes = new Set()
     this.classes.add(opts.name)
     this.classes.add(opts.sectionId)
+  }
+
+  get items() {
+    const keys = Object.keys(this.list.items)
+
+    return keys.reduce((items, key) => {
+      const item = this.list.items[key]
+
+      if (item.section === this) {
+        items.push(item)
+      }
+
+      return items
+    }, []).sort((a, b) => {
+      return a.order - b.order
+    })
   }
 
   build() {
@@ -1020,6 +1036,7 @@ class Item {
   }
 
   updateSection() {
+    if (!this.key) return
     const ref = this.list.app.db.child(this.key)
     ref.update({ group: this.section.id })
   }
@@ -1036,6 +1053,7 @@ class Item {
   }
 
   delete() {
+    if (!this.key) return
     const ref = this.list.app.db.child(this.key)
     ref.remove()
   }
