@@ -205,9 +205,9 @@ class App {
         profile.style.backgroundImage = `url(${user.photoURL})`
       }
 
-      this.db = firebase.database().ref(`users/${user.uid}/items`).orderByChild('order')
-      
-      this.db.once('value', data => {
+      this.db = firebase.database().ref(`users/${user.uid}/items`)
+
+      this.db.orderByChild('order').once('value', data => {
         this.list.loadItems(data)
         this.modal.dataset.active = ''
       })
@@ -535,7 +535,8 @@ class List {
 
       section.createItem({
         key: key,
-        content: item.content
+        content: item.content,
+        order: item.order
       })
     })
   }
@@ -676,11 +677,40 @@ class Section {
   createItem(opts) {
     opts.section = this
 
+    if (!('order' in opts)) {
+      if (opts.first) {
+        opts.order = 1
+        this.reorderFromIndex(2)
+      } else {
+        opts.order = this.items.length + 1
+      }
+    }
+
     const item = new Item(opts).build()
 
-    item.render({ first: opts.first })
+    item.render()
 
     this.list.items[item.id] = item
+  }
+
+  reorderFromIndex(index) {
+    this.items.reduce((n, item) => {
+      item.order = n
+
+      return ++n
+    }, index)
+  }
+
+  reorderFromDOM() {
+    const els = this.el.querySelectorAll('.item:not(.gu-mirror)')
+    const ids = [...els].map(el => { return el.dataset.id })
+    const items = ids.map(id => { return this.list.items[id] })
+
+    items.reduce((n, item) => {
+      item.order = n
+
+      return ++n
+    }, 1)
   }
 
 }
@@ -880,6 +910,7 @@ class Item {
     this._section = opts.section
     this._content = opts.content || ''
     this.list = this._section.list
+    this.order = opts.order
     this.key = opts.key
 
     // Explicit bindings
@@ -926,7 +957,8 @@ class Item {
   toJSON() {
     return {
       group: this.section.id,
-      content: this.content
+      content: this.content,
+      order: this.order
     }
   }
 
@@ -952,8 +984,8 @@ class Item {
     return this
   }
 
-  render(opts) {
-    if (opts.first) {
+  render() {
+    if (this.order === 1) {
       this.section.listEl.insertBefore(this.el, this.section.listEl.firstChild)
     } else {
       this.section.listEl.appendChild(this.el)
@@ -972,6 +1004,7 @@ class Item {
   remove() {
     this.detach()
     delete this.list.items[this.id]
+    this.section.reorderFromDOM()
     // this.list.save()
     this.delete()
   }
