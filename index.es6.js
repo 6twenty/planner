@@ -208,17 +208,10 @@ class App {
       }
 
       this.db = firebase.database().ref(`users/${user.uid}/items`)
-
-      this.list.load()
+      this.db.once('value', this.list.loadItems.bind(this.list))
     } else {
       this.modal.dataset.active = '#providers'
     }
-  }
-
-  load(items) {
-    const json = JSON.stringify(items)
-    localStorage.setItem('items', json)
-    this.list.load()
   }
 
   build() {
@@ -525,12 +518,13 @@ class List {
     })
   }
 
-  load() {
-    const items = this.stored()
+  loadItems(snapshot) {
+    const items = snapshot.val()
+    const keys = Object.keys(items)
 
-    if (!items) return
+    keys.forEach(key => {
+      const item = items[key]
 
-    items.forEach(item => {
       let section = this.sectionById[item.group]
 
       if (!section) {
@@ -538,6 +532,7 @@ class List {
       }
 
       section.createItem({
+        key: key,
         content: item.content
       })
     })
@@ -555,40 +550,20 @@ class List {
     })
   }
 
-  stored() {
-    if (this._stored) {
-      return this._stored
-    }
-
-    const stored = localStorage.getItem('items')
-    if (!stored) return
-
-    let items = JSON.parse(stored)
-
-    // If `items` is a key/value object it needs to be converted to a simple array
-    if (!Array.isArray(items)) {
-      items = Object.keys(items).map(id => { return items[id] })
-    }
-
-    this._stored = items
-
-    return items
-  }
-
   render() {
     this.app.el.appendChild(this.el)
   }
 
-  save() {
-    // Get order from the DOM
-    const els = this.el.querySelectorAll('.item:not(.gu-mirror)')
-    const ids = [...els].map(el => { return el.dataset.id })
-    const items = ids.map(id => { return this.items[id] })
-    const stringified = JSON.stringify(items)
-
-    this._stored = null
-    localStorage.setItem('items', stringified)
-  }
+  // save() {
+  //   // Get order from the DOM
+  //   const els = this.el.querySelectorAll('.item:not(.gu-mirror)')
+  //   const ids = [...els].map(el => { return el.dataset.id })
+  //   const items = ids.map(id => { return this.items[id] })
+  //   const stringified = JSON.stringify(items)
+  //
+  //   this._stored = null
+  //   localStorage.setItem('items', stringified)
+  // }
 
   filter() {
     const regex = new RegExp(App.escapeRegex(this.app.filtered), 'i')
@@ -682,7 +657,6 @@ class Section {
 
   createItem(opts) {
     opts.section = this
-    opts.persisted = false
 
     const item = new Item(opts).build()
 
@@ -888,7 +862,7 @@ class Item {
     this._section = opts.section
     this._content = opts.content || ''
     this.list = this._section.list
-    this.persisted = opts.persisted
+    this.key = opts.key
 
     // Explicit bindings
     this.onDblClick = this.onDblClick.bind(this)
@@ -1051,13 +1025,12 @@ class Item {
   }
 
   updateContent() {
-    if (this.persisted) {
+    if (this.key) {
       const ref = this.list.app.db.child(this.key)
       ref.update({ content: this.content })
     } else {
       const ref = this.list.app.db.push()
       this.key = ref.key
-      this.persisted = true
       ref.set(this.toJSON())
     }
   }
