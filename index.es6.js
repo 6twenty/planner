@@ -193,8 +193,6 @@ class App {
     const user = firebase.auth().currentUser
 
     if (user) {
-      this.modal.dataset.active = ''
-
       const settings = this.el.querySelector('.settings')
       const profile = this.el.querySelector('.profile')
       const letter = user.displayName ? user.displayName[0] : '?'
@@ -207,8 +205,12 @@ class App {
         profile.style.backgroundImage = `url(${user.photoURL})`
       }
 
-      this.db = firebase.database().ref(`users/${user.uid}/items`)
-      this.db.once('value', this.list.loadItems.bind(this.list))
+      this.db = firebase.database().ref(`users/${user.uid}/items`).orderByChild('order')
+      
+      this.db.once('value', data => {
+        this.list.loadItems(data)
+        this.modal.dataset.active = ''
+      })
     } else {
       this.modal.dataset.active = '#providers'
     }

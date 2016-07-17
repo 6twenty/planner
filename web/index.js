@@ -125,11 +125,11 @@ var App = function () {
   }, {
     key: 'init',
     value: function init() {
+      var _this = this;
+
       var user = firebase.auth().currentUser;
 
       if (user) {
-        this.modal.dataset.active = '';
-
         var settings = this.el.querySelector('.settings');
         var profile = this.el.querySelector('.profile');
         var letter = user.displayName ? user.displayName[0] : '?';
@@ -142,8 +142,12 @@ var App = function () {
           profile.style.backgroundImage = 'url(' + user.photoURL + ')';
         }
 
-        this.db = firebase.database().ref('users/' + user.uid + '/items');
-        this.db.once('value', this.list.loadItems.bind(this.list));
+        this.db = firebase.database().ref('users/' + user.uid + '/items').orderByChild('order');
+
+        this.db.once('value', function (data) {
+          _this.list.loadItems(data);
+          _this.modal.dataset.active = '';
+        });
       } else {
         this.modal.dataset.active = '#providers';
       }
@@ -190,7 +194,7 @@ var App = function () {
   }, {
     key: 'buildModalProviders',
     value: function buildModalProviders() {
-      var _this = this;
+      var _this2 = this;
 
       var section = document.createElement('section');
 
@@ -204,7 +208,7 @@ var App = function () {
       section.appendChild(a);
 
       a.addEventListener('singletap', function (e) {
-        _this.signIn('GoogleAuthProvider');
+        _this2.signIn('GoogleAuthProvider');
       });
 
       this.modal.appendChild(section);
@@ -212,7 +216,7 @@ var App = function () {
   }, {
     key: 'buildModalSettings',
     value: function buildModalSettings() {
-      var _this2 = this;
+      var _this3 = this;
 
       var section = document.createElement('section');
       var close = document.createElement('a');
@@ -228,11 +232,11 @@ var App = function () {
       section.appendChild(signOut);
 
       close.addEventListener('singletap', function (e) {
-        _this2.list.app.modal.dataset.active = '';
+        _this3.list.app.modal.dataset.active = '';
       });
 
       signOut.addEventListener('singletap', function (e) {
-        _this2.signOut();
+        _this3.signOut();
       });
 
       this.modal.appendChild(section);
@@ -256,11 +260,11 @@ var App = function () {
   }, {
     key: 'observe',
     value: function observe() {
-      var _this3 = this;
+      var _this4 = this;
 
       // For regular keys, use `keypress` (provides the correct char code)
       window.addEventListener('keypress', function (e) {
-        if (_this3.editing) return;
+        if (_this4.editing) return;
         if (e.metaKey) return;
         if (e.ctrlKey) return;
         if (e.altKey) return;
@@ -270,12 +274,12 @@ var App = function () {
 
         if (!char) return;
 
-        _this3.filtered += char;
+        _this4.filtered += char;
       });
 
       // For special keys (esc and backspace), use `keydown`
       window.addEventListener('keydown', function (e) {
-        if (_this3.editing) return;
+        if (_this4.editing) return;
         if (e.metaKey) return;
         if (e.ctrlKey) return;
         if (e.altKey) return;
@@ -285,19 +289,19 @@ var App = function () {
           // Esc
           e.preventDefault();
 
-          if (_this3.modal.dataset.active === '#settings') {
-            _this3.modal.dataset.active = '';
+          if (_this4.modal.dataset.active === '#settings') {
+            _this4.modal.dataset.active = '';
           }
 
           if (document.activeElement) {
             document.activeElement.blur();
           }
 
-          _this3.filtered = '';
-          if (_this3.list.drake.dragging) {
-            _this3.list.drake.cancel(true);
-            if (_this3.list.originalSectionId) {
-              _this3.list.el.dataset.active = '#' + _this3.list.originalSectionId;
+          _this4.filtered = '';
+          if (_this4.list.drake.dragging) {
+            _this4.list.drake.cancel(true);
+            if (_this4.list.originalSectionId) {
+              _this4.list.el.dataset.active = '#' + _this4.list.originalSectionId;
             }
           }
         }
@@ -305,7 +309,7 @@ var App = function () {
         if (e.which === 8) {
           // Backspace
           e.preventDefault();
-          _this3.filtered = _this3.filtered.slice(0, _this3.filtered.length - 1);
+          _this4.filtered = _this4.filtered.slice(0, _this4.filtered.length - 1);
         }
       });
     }
@@ -445,7 +449,7 @@ var List = function () {
   _createClass(List, [{
     key: 'build',
     value: function build() {
-      var _this4 = this;
+      var _this5 = this;
 
       this.sections = []; // Ordered, for rendering sequentially
       this.sectionById = {}; // For easy lookup
@@ -467,28 +471,28 @@ var List = function () {
         }
 
         var section = new DaySection({
-          list: _this4,
+          list: _this5,
           date: date,
           sectionId: day
         }).build();
 
-        section.render(_this4.el);
+        section.render(_this5.el);
 
-        _this4.sections.push(section);
-        _this4.sectionById[section.id] = section;
+        _this5.sections.push(section);
+        _this5.sectionById[section.id] = section;
       });
 
       var sectionClasses = [WeekSection, MonthSection, BacklogSection, OverdueSection, DoneSection];
 
       sectionClasses.forEach(function (SectionClass) {
         var section = new SectionClass({
-          list: _this4
+          list: _this5
         }).build();
 
-        section.render(_this4.el);
+        section.render(_this5.el);
 
-        _this4.sections.push(section);
-        _this4.sectionById[section.id] = section;
+        _this5.sections.push(section);
+        _this5.sectionById[section.id] = section;
       });
 
       this.dragula();
@@ -508,7 +512,7 @@ var List = function () {
 
       return dragula;
     }(function () {
-      var _this5 = this;
+      var _this6 = this;
 
       var lists = this.sections.map(function (section) {
         return section.listEl;
@@ -530,7 +534,7 @@ var List = function () {
             return false;
           }
 
-          var item = _this5.items[el.dataset.id];
+          var item = _this6.items[el.dataset.id];
 
           if (item.editing) {
             return false;
@@ -539,7 +543,7 @@ var List = function () {
           return true;
         },
         accepts: function accepts(el, target, source, sibling) {
-          var section = _this5.sectionById[target.parentElement.dataset.id];
+          var section = _this6.sectionById[target.parentElement.dataset.id];
           var active = section.list.el.querySelector('section.over');
 
           if (active) {
@@ -547,7 +551,7 @@ var List = function () {
           }
 
           section.el.classList.add('over');
-          _this5.el.dataset.active = '#' + section.sectionId;
+          _this6.el.dataset.active = '#' + section.sectionId;
 
           if (target.nodeName === 'HEADER') {
             if (target.parentElement === el.parentElement.parentElement) {
@@ -564,12 +568,12 @@ var List = function () {
       });
 
       this.drake.on('drag', function (el) {
-        _this5.originalSectionId = el.parentElement.parentElement.dataset.sectionId;
+        _this6.originalSectionId = el.parentElement.parentElement.dataset.sectionId;
         el.parentElement.parentElement.classList.add('over');
       });
 
       this.drake.on('dragend', function (el) {
-        var active = _this5.el.querySelector('section.over');
+        var active = _this6.el.querySelector('section.over');
 
         if (active) {
           active.classList.remove('over');
@@ -577,8 +581,8 @@ var List = function () {
       });
 
       this.drake.on('drop', function (el, target, source, sibling) {
-        var item = _this5.items[el.dataset.id];
-        var section = _this5.sectionById[target.parentElement.dataset.id];
+        var item = _this6.items[el.dataset.id];
+        var section = _this6.sectionById[target.parentElement.dataset.id];
         item.section = section;
       });
 
@@ -588,14 +592,14 @@ var List = function () {
       });
 
       this.drake.on('shadow', function (el, container, source) {
-        var mirror = _this5.el.querySelector('.item.gu-mirror');
+        var mirror = _this6.el.querySelector('.item.gu-mirror');
         mirror.dataset.sectionType = container.parentElement.dataset.name;
       });
     })
   }, {
     key: 'loadItems',
     value: function loadItems(snapshot) {
-      var _this6 = this;
+      var _this7 = this;
 
       var items = snapshot.val() || {};
       var keys = Object.keys(items);
@@ -603,10 +607,10 @@ var List = function () {
       keys.forEach(function (key) {
         var item = items[key];
 
-        var section = _this6.sectionById[item.group];
+        var section = _this7.sectionById[item.group];
 
         if (!section) {
-          section = _this6.sectionById.overdue;
+          section = _this7.sectionById.overdue;
         }
 
         section.createItem({
@@ -618,16 +622,16 @@ var List = function () {
   }, {
     key: 'unload',
     value: function unload() {
-      var _this7 = this;
+      var _this8 = this;
 
       var ids = Object.keys(this.items);
 
       ids.forEach(function (id) {
-        var item = _this7.items[id];
+        var item = _this8.items[id];
 
         item.detach();
 
-        delete _this7.items[id];
+        delete _this8.items[id];
       });
     }
   }, {
@@ -650,12 +654,12 @@ var List = function () {
   }, {
     key: 'filter',
     value: function filter() {
-      var _this8 = this;
+      var _this9 = this;
 
       var regex = new RegExp(App.escapeRegex(this.app.filtered), 'i');
 
       Object.keys(this.items).forEach(function (id) {
-        var item = _this8.items[id];
+        var item = _this9.items[id];
 
         if (regex.test(item.content)) {
           item.show();
@@ -689,7 +693,7 @@ var Section = function () {
   _createClass(Section, [{
     key: 'build',
     value: function build() {
-      var _this9 = this;
+      var _this10 = this;
 
       var section = document.createElement('section');
       var header = document.createElement('header');
@@ -717,11 +721,11 @@ var Section = function () {
       this.listEl = list;
 
       this.el.addEventListener('doubletap', function (e) {
-        if (e.target !== _this9.listEl && e.target !== _this9.header) return;
+        if (e.target !== _this10.listEl && e.target !== _this10.header) return;
 
-        var first = e.target !== _this9.listEl;
+        var first = e.target !== _this10.listEl;
 
-        _this9.createItem({
+        _this10.createItem({
           edit: true,
           first: first
         });
@@ -730,13 +734,13 @@ var Section = function () {
       header.addEventListener('singletap', function (e) {
         if (e.target !== header) return;
 
-        _this9.list.el.dataset.active = '#' + _this9.sectionId;
+        _this10.list.el.dataset.active = '#' + _this10.sectionId;
       });
 
       back.addEventListener('singletap', function (e) {
         if (e.target !== back) return;
 
-        _this9.list.el.dataset.active = '';
+        _this10.list.el.dataset.active = '';
       });
 
       return this;
@@ -763,14 +767,14 @@ var Section = function () {
   }, {
     key: 'items',
     get: function get() {
-      var _this10 = this;
+      var _this11 = this;
 
       var keys = Object.keys(this.list.items);
 
       return keys.reduce(function (items, key) {
-        var item = _this10.list.items[key];
+        var item = _this11.list.items[key];
 
-        if (item.section === _this10) {
+        if (item.section === _this11) {
           items.push(item);
         }
 
@@ -803,29 +807,29 @@ var DaySection = function (_Section) {
     opts.id = date.format('YYYY-MM-DD');
     opts.name = 'day';
 
-    var _this11 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
+    var _this12 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
 
-    _this11.date = date;
-    _this11.title = date.format('dddd');
+    _this12.date = date;
+    _this12.title = date.format('dddd');
 
     if (isSaturday) {
-      _this11.classes.add('weekend');
+      _this12.classes.add('weekend');
     }
 
     if (isToday && isSaturday) {
-      _this11.title = 'This weekend';
+      _this12.title = 'This weekend';
     } else if (isToday) {
-      _this11.title = 'Today';
+      _this12.title = 'Today';
     } else if (isSaturday) {
-      _this11.title = 'Weekend';
+      _this12.title = 'Weekend';
     }
-    return _this11;
+    return _this12;
   }
 
   _createClass(DaySection, [{
     key: 'build',
     value: function build() {
-      var _this12 = this;
+      var _this13 = this;
 
       _get(Object.getPrototypeOf(DaySection.prototype), 'build', this).call(this);
 
@@ -852,7 +856,7 @@ var DaySection = function (_Section) {
         settings.classList.add('settings');
 
         settings.addEventListener('singletap', function (e) {
-          _this12.list.app.modal.dataset.active = '#settings';
+          _this13.list.app.modal.dataset.active = '#settings';
         });
 
         this.header.appendChild(settings);
@@ -878,10 +882,10 @@ var WeekSection = function (_Section2) {
     opts.name = 'week';
     opts.sectionId = 'week';
 
-    var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
+    var _this14 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
 
-    _this13.title = 'This week';
-    return _this13;
+    _this14.title = 'This week';
+    return _this14;
   }
 
   _createClass(WeekSection, [{
@@ -914,10 +918,10 @@ var MonthSection = function (_Section3) {
     opts.name = 'month';
     opts.sectionId = 'month';
 
-    var _this14 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
+    var _this15 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
 
-    _this14.title = 'This month';
-    return _this14;
+    _this15.title = 'This month';
+    return _this15;
   }
 
   _createClass(MonthSection, [{
@@ -955,7 +959,7 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'build',
     value: function build() {
-      var _this16 = this;
+      var _this17 = this;
 
       _get(Object.getPrototypeOf(DoneSection.prototype), 'build', this).call(this);
 
@@ -966,7 +970,7 @@ var DoneSection = function (_Section4) {
       this.el.appendChild(button);
 
       button.addEventListener('singletap', function (e) {
-        _this16.clear();
+        _this17.clear();
       });
 
       return this;
@@ -974,11 +978,11 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'clear',
     value: function clear() {
-      var _this17 = this;
+      var _this18 = this;
 
       Object.keys(this.list.items).forEach(function (id) {
-        var item = _this17.list.items[id];
-        if (item.section.id === _this17.id) {
+        var item = _this18.list.items[id];
+        if (item.section.id === _this18.id) {
           item.remove();
         }
       });
@@ -1250,16 +1254,16 @@ var Item = function () {
   }, {
     key: 'onTouchStart',
     value: function onTouchStart(e) {
-      var _this20 = this;
+      var _this21 = this;
 
       if ('_allowDrag' in this) return;
 
       App.canDrag = false;
 
       this._timer = setTimeout(function () {
-        _this20._allowDrag = App.canDrag = true;
-        _this20.el.dispatchEvent(e);
-        delete _this20._allowDrag;
+        _this21._allowDrag = App.canDrag = true;
+        _this21.el.dispatchEvent(e);
+        delete _this21._allowDrag;
       }, 500);
     }
   }, {
