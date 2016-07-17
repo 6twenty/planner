@@ -739,6 +739,10 @@ main .item.gu-mirror[data-section-type="done"] {
     right: 1.5rem;
   }
 
+  main[data-active^="#"] section .settings {
+    display: none;
+  }
+
   main section button.clear {
     display: none;
     left: 0;
