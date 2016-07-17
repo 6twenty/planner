@@ -79,8 +79,6 @@ var App = function () {
 
       firebase.initializeApp(this.config);
 
-      this.db = firebase.database();
-
       return new Promise(function (resolve, reject) {
 
         firebase.auth().onAuthStateChanged(function (user) {
@@ -143,6 +141,8 @@ var App = function () {
           settings.style.backgroundImage = 'url(' + user.photoURL + ')';
           profile.style.backgroundImage = 'url(' + user.photoURL + ')';
         }
+
+        this.db = firebase.database().ref('users/' + user.uid + '/items');
 
         this.list.load();
       } else {
@@ -1193,34 +1193,27 @@ var Item = function () {
   }, {
     key: 'updateSection',
     value: function updateSection() {
-      var user = firebase.auth().currentUser;
-      var itemsRef = this.list.app.db.ref('users/' + user.uid + '/items');
-      var itemRef = itemsRef.child(this.key);
-      itemRef.update({ group: this.section.id });
+      var ref = this.list.app.db.child(this.key);
+      ref.update({ group: this.section.id });
     }
   }, {
     key: 'updateContent',
     value: function updateContent() {
-      var user = firebase.auth().currentUser;
-      var itemsRef = this.list.app.db.ref('users/' + user.uid + '/items');
-
       if (this.persisted) {
-        var itemRef = itemsRef.child(this.key);
-        itemRef.update({ content: this.content });
+        var ref = this.list.app.db.child(this.key);
+        ref.update({ content: this.content });
       } else {
-        var _itemRef = itemsRef.push();
-        this.key = _itemRef.key;
+        var _ref = this.list.app.db.push();
+        this.key = _ref.key;
         this.persisted = true;
-        _itemRef.set(this.toJSON());
+        _ref.set(this.toJSON());
       }
     }
   }, {
     key: 'delete',
     value: function _delete() {
-      var user = firebase.auth().currentUser;
-      var itemsRef = this.list.app.db.ref('users/' + user.uid + '/items');
-      var itemRef = itemsRef.child(this.key);
-      itemRef.remove();
+      var ref = this.list.app.db.child(this.key);
+      ref.remove();
     }
   }, {
     key: 'focus',

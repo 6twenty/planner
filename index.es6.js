@@ -147,8 +147,6 @@ class App {
 
     firebase.initializeApp(this.config)
 
-    this.db = firebase.database()
-
     return new Promise((resolve, reject) => {
 
       firebase.auth().onAuthStateChanged(user => {
@@ -208,6 +206,8 @@ class App {
         settings.style.backgroundImage = `url(${user.photoURL})`
         profile.style.backgroundImage = `url(${user.photoURL})`
       }
+
+      this.db = firebase.database().ref(`users/${user.uid}/items`)
 
       this.list.load()
     } else {
@@ -1046,32 +1046,25 @@ class Item {
   }
 
   updateSection() {
-    const user = firebase.auth().currentUser
-    const itemsRef = this.list.app.db.ref(`users/${user.uid}/items`)
-    const itemRef = itemsRef.child(this.key)
-    itemRef.update({ group: this.section.id })
+    const ref = this.list.app.db.child(this.key)
+    ref.update({ group: this.section.id })
   }
 
   updateContent() {
-    const user = firebase.auth().currentUser
-    const itemsRef = this.list.app.db.ref(`users/${user.uid}/items`)
-
     if (this.persisted) {
-      const itemRef = itemsRef.child(this.key)
-      itemRef.update({ content: this.content })
+      const ref = this.list.app.db.child(this.key)
+      ref.update({ content: this.content })
     } else {
-      const itemRef = itemsRef.push()
-      this.key = itemRef.key
+      const ref = this.list.app.db.push()
+      this.key = ref.key
       this.persisted = true
-      itemRef.set(this.toJSON())
+      ref.set(this.toJSON())
     }
   }
 
   delete() {
-    const user = firebase.auth().currentUser
-    const itemsRef = this.list.app.db.ref(`users/${user.uid}/items`)
-    const itemRef = itemsRef.child(this.key)
-    itemRef.remove()
+    const ref = this.list.app.db.child(this.key)
+    ref.remove()
   }
 
   focus() {
