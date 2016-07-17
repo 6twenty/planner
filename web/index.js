@@ -296,6 +296,10 @@ var App = function () {
           // Esc
           e.preventDefault();
 
+          if (_this3.modal.dataset.active === '#settings') {
+            _this3.modal.dataset.active = '';
+          }
+
           if (document.activeElement) {
             document.activeElement.blur();
           }

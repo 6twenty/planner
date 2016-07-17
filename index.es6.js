@@ -313,6 +313,10 @@ class App {
       if (e.which === 27) { // Esc
         e.preventDefault()
 
+        if (this.modal.dataset.active === '#settings') {
+          this.modal.dataset.active = ''
+        }
+
         if (document.activeElement) {
           document.activeElement.blur()
         }
