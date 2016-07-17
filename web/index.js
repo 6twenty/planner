@@ -314,6 +314,16 @@ var App = function () {
       });
     }
   }, {
+    key: 'filtered',
+    get: function get() {
+      return this._filtered;
+    },
+    set: function set(value) {
+      this._filtered = value;
+      this.aside.innerText = value;
+      this.list.filter();
+    }
+  }, {
     key: 'env',
     get: function get() {
       if (this._env) return this._env;
@@ -350,16 +360,6 @@ var App = function () {
       this._config = configs[this.env];
 
       return this._config;
-    }
-  }, {
-    key: 'filtered',
-    get: function get() {
-      return this._filtered;
-    },
-    set: function set(value) {
-      this._filtered = value;
-      this.aside.innerText = value;
-      this.list.filter();
     }
   }], [{
     key: 'uniqueId',

@@ -99,6 +99,16 @@ class App {
     return `${fromDate} - ${toDate}`
   }
 
+  get filtered() {
+    return this._filtered
+  }
+
+  set filtered(value) {
+    this._filtered = value
+    this.aside.innerText = value
+    this.list.filter()
+  }
+
   get env() {
     if (this._env) return this._env
 
@@ -364,16 +374,6 @@ class App {
       }
     })
 
-  }
-
-  get filtered() {
-    return this._filtered
-  }
-
-  set filtered(value) {
-    this._filtered = value
-    this.aside.innerText = value
-    this.list.filter()
   }
 
 }
