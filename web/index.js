@@ -77,12 +77,7 @@ var App = function () {
         sessionStorage.removeItem('awaitingAuthRedirect');
       }
 
-      firebase.initializeApp({
-        apiKey: "AIzaSyBgNTLh6iZ8itiE0-JaJJqlyUJ4aW4rB3c",
-        authDomain: "planner-6059a.firebaseapp.com",
-        databaseURL: "https://planner-6059a.firebaseio.com",
-        storageBucket: ""
-      });
+      firebase.initializeApp(this.config);
 
       return new Promise(function (resolve, reject) {
 
@@ -319,6 +314,44 @@ var App = function () {
           _this3.filtered = _this3.filtered.slice(0, _this3.filtered.length - 1);
         }
       });
+    }
+  }, {
+    key: 'env',
+    get: function get() {
+      if (this._env) return this._env;
+
+      this._env = 'dev';
+
+      if (location.hostname === 'planner-6059a.firebaseapp.com') {
+        this._env = 'prod';
+      }
+
+      return this._env;
+    }
+  }, {
+    key: 'config',
+    get: function get() {
+      if (this._config) return this._config;
+
+      var configs = {
+        dev: {
+          apiKey: "AIzaSyAqvyzUD5ioSwBSkj1zd61a_LipptjQb0M",
+          authDomain: "planner-dev-73d1e.firebaseapp.com",
+          databaseURL: "https://planner-dev-73d1e.firebaseio.com",
+          storageBucket: ""
+        },
+
+        prod: {
+          apiKey: "AIzaSyBgNTLh6iZ8itiE0-JaJJqlyUJ4aW4rB3c",
+          authDomain: "planner-6059a.firebaseapp.com",
+          databaseURL: "https://planner-6059a.firebaseio.com",
+          storageBucket: ""
+        }
+      };
+
+      this._config = configs[this.env];
+
+      return this._config;
     }
   }, {
     key: 'filtered',
