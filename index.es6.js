@@ -217,9 +217,12 @@ class App {
 
       this.db = firebase.database().ref(`users/${user.uid}/items`)
 
-      this.db.orderByChild('order').once('value', data => {
-        this.list.loadItems(data)
-        this.modal.dataset.active = ''
+      this.db.orderByChild('order').on('child_added', data => {
+        this.list.loadItem(data.key, data.val())
+
+        if (this.modal.dataset.active === '#loading') {
+          this.modal.dataset.active = ''
+        }
       })
     } else {
       this.modal.dataset.active = '#providers'
@@ -367,6 +370,8 @@ class App {
   }
 
   load(cached) {
+    const orders = {}
+
     const updates = cached.reduce((items, item) => {
       let section = this.list.sectionById[item.group]
 
@@ -374,12 +379,17 @@ class App {
         section = this.list.sectionById.overdue
       }
 
+      if (!(section.id in orders)) {
+        orders[section.id] = 0
+      }
+
       const ref = this.list.app.db.push()
 
-      items[ref.key] = section.createItem({
-        key: ref.key,
-        content: item.content
-      }).toJSON()
+      items[ref.key] = {
+        group: section.id,
+        content: '',
+        order: ++orders[section.id]
+      }
 
       return items
     }, {})
@@ -531,25 +541,14 @@ class List {
     })
   }
 
-  loadItems(snapshot) {
-    const items = snapshot.val() || {}
-    const keys = Object.keys(items)
+  loadItem(key, attrs) {
+    let section = this.sectionById[attrs.group]
 
-    keys.forEach(key => {
-      const item = items[key]
+    if (!section) {
+      section = this.sectionById.overdue
+    }
 
-      let section = this.sectionById[item.group]
-
-      if (!section) {
-        section = this.sectionById.overdue
-      }
-
-      section.createItem({
-        key: key,
-        content: item.content,
-        order: item.order
-      })
-    })
+    section.loadItem(key, attrs)
   }
 
   unload() {
@@ -644,11 +643,18 @@ class Section {
       if (e.target !== this.listEl && e.target !== this.header) return
 
       const first = e.target !== this.listEl
+      const opts = {}
 
-      this.createItem({
-        edit: true,
-        first: first
-      })
+      opts.section = this
+
+      if (first) {
+        opts.order = 1
+        this.reorderFromIndex(2)
+      } else {
+        opts.order = this.items.length + 1
+      }
+
+      Item.create(opts)
     })
 
     header.addEventListener('singletap', e => {
@@ -674,25 +680,15 @@ class Section {
     parent.appendChild(this.el)
   }
 
-  createItem(opts) {
-    opts.section = this
+  loadItem(key, attrs) {
+    new Item({
+      key: key,
+      section: this,
+      content: attrs.content,
+      order: attrs.order
+    }).build()
 
-    if (!('order' in opts)) {
-      if (opts.first) {
-        opts.order = 1
-        this.reorderFromIndex(2)
-      } else {
-        opts.order = this.items.length + 1
-      }
-    }
-
-    const item = new Item(opts).build()
-
-    item.render()
-
-    this.list.items[item.key] = item
-
-    return item
+    this.reorderToDOM()
   }
 
   reorderFromIndex(index) {
@@ -713,6 +709,13 @@ class Section {
 
       return ++n
     }, 1)
+  }
+
+  reorderToDOM() {
+    this.items.forEach(item => {
+      item.detach()
+      item.render()
+    })
   }
 
 }
@@ -907,17 +910,14 @@ class BacklogSection extends Section {
 class Item {
 
   constructor(opts) {
-    this._editing = !!opts.edit
+    this._editing = opts.content === ''
     this._section = opts.section
-    this._content = opts.content || ''
+    this._content = opts.content
     this.list = this._section.list
     this._order = opts.order
+    this.key = opts.key
 
-    if ('key' in opts) {
-      this.key = opts.key
-    } else {
-      this.create()
-    }
+    this.list.items[this.key] = this
 
     // Explicit bindings
     this.onDblClick = this.onDblClick.bind(this)
@@ -928,6 +928,14 @@ class Item {
     this.onTouchMove = this.onTouchMove.bind(this)
     this.onTouchEnd = this.onTouchEnd.bind(this)
     this.onMouseMove = this.onMouseMove.bind(this)
+  }
+
+  static create(opts) {
+    opts.section.list.app.db.push().set({
+      group: opts.section.id,
+      content: '',
+      order: opts.order
+    })
   }
 
   get editing () {
@@ -1017,11 +1025,7 @@ class Item {
   }
 
   render() {
-    if (this.order === 1) {
-      this.section.listEl.insertBefore(this.el, this.section.listEl.firstChild)
-    } else {
-      this.section.listEl.appendChild(this.el)
-    }
+    this.section.listEl.appendChild(this.el)
 
     if (this.editing) {
       this.el.focus()
@@ -1101,32 +1105,22 @@ class Item {
     this.el.addEventListener('mousedown', this.onMouseMove)
   }
 
-  create() {
-    const ref = this.list.app.db.push()
-    this.key = ref.key
-    ref.set(this.toJSON())
-  }
-
   updateOrder() {
-    if (!this.key) return
     const ref = this.list.app.db.child(this.key)
     ref.update({ order: this.order })
   }
 
   updateSection() {
-    if (!this.key) return
     const ref = this.list.app.db.child(this.key)
     ref.update({ group: this.section.id })
   }
 
   updateContent() {
-    if (!this.key) return
     const ref = this.list.app.db.child(this.key)
     ref.update({ content: this.content })
   }
 
   delete() {
-    if (!this.key) return
     const ref = this.list.app.db.child(this.key)
     ref.remove()
   }

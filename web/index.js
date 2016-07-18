@@ -144,9 +144,12 @@ var App = function () {
 
         this.db = firebase.database().ref('users/' + user.uid + '/items');
 
-        this.db.orderByChild('order').once('value', function (data) {
-          _this.list.loadItems(data);
-          _this.modal.dataset.active = '';
+        this.db.orderByChild('order').on('child_added', function (data) {
+          _this.list.loadItem(data.key, data.val());
+
+          if (_this.modal.dataset.active === '#loading') {
+            _this.modal.dataset.active = '';
+          }
         });
       } else {
         this.modal.dataset.active = '#providers';
@@ -311,6 +314,8 @@ var App = function () {
     value: function load(cached) {
       var _this5 = this;
 
+      var orders = {};
+
       var updates = cached.reduce(function (items, item) {
         var section = _this5.list.sectionById[item.group];
 
@@ -318,12 +323,17 @@ var App = function () {
           section = _this5.list.sectionById.overdue;
         }
 
+        if (!(section.id in orders)) {
+          orders[section.id] = 0;
+        }
+
         var ref = _this5.list.app.db.push();
 
-        items[ref.key] = section.createItem({
-          key: ref.key,
-          content: item.content
-        }).toJSON();
+        items[ref.key] = {
+          group: section.id,
+          content: '',
+          order: ++orders[section.id]
+        };
 
         return items;
       }, {});
@@ -614,42 +624,29 @@ var List = function () {
       });
     })
   }, {
-    key: 'loadItems',
-    value: function loadItems(snapshot) {
-      var _this8 = this;
+    key: 'loadItem',
+    value: function loadItem(key, attrs) {
+      var section = this.sectionById[attrs.group];
 
-      var items = snapshot.val() || {};
-      var keys = Object.keys(items);
+      if (!section) {
+        section = this.sectionById.overdue;
+      }
 
-      keys.forEach(function (key) {
-        var item = items[key];
-
-        var section = _this8.sectionById[item.group];
-
-        if (!section) {
-          section = _this8.sectionById.overdue;
-        }
-
-        section.createItem({
-          key: key,
-          content: item.content,
-          order: item.order
-        });
-      });
+      section.loadItem(key, attrs);
     }
   }, {
     key: 'unload',
     value: function unload() {
-      var _this9 = this;
+      var _this8 = this;
 
       var keys = Object.keys(this.items);
 
       keys.forEach(function (key) {
-        var item = _this9.items[key];
+        var item = _this8.items[key];
 
         item.detach();
 
-        delete _this9.items[key];
+        delete _this8.items[key];
       });
     }
   }, {
@@ -660,12 +657,12 @@ var List = function () {
   }, {
     key: 'filter',
     value: function filter() {
-      var _this10 = this;
+      var _this9 = this;
 
       var regex = new RegExp(App.escapeRegex(this.app.filtered), 'i');
 
       Object.keys(this.items).forEach(function (key) {
-        var item = _this10.items[key];
+        var item = _this9.items[key];
 
         if (regex.test(item.content)) {
           item.show();
@@ -699,7 +696,7 @@ var Section = function () {
   _createClass(Section, [{
     key: 'build',
     value: function build() {
-      var _this11 = this;
+      var _this10 = this;
 
       var section = document.createElement('section');
       var header = document.createElement('header');
@@ -727,26 +724,33 @@ var Section = function () {
       this.listEl = list;
 
       this.el.addEventListener('doubletap', function (e) {
-        if (e.target !== _this11.listEl && e.target !== _this11.header) return;
+        if (e.target !== _this10.listEl && e.target !== _this10.header) return;
 
-        var first = e.target !== _this11.listEl;
+        var first = e.target !== _this10.listEl;
+        var opts = {};
 
-        _this11.createItem({
-          edit: true,
-          first: first
-        });
+        opts.section = _this10;
+
+        if (first) {
+          opts.order = 1;
+          _this10.reorderFromIndex(2);
+        } else {
+          opts.order = _this10.items.length + 1;
+        }
+
+        Item.create(opts);
       });
 
       header.addEventListener('singletap', function (e) {
         if (e.target !== header) return;
 
-        _this11.list.el.dataset.active = '#' + _this11.sectionId;
+        _this10.list.el.dataset.active = '#' + _this10.sectionId;
       });
 
       back.addEventListener('singletap', function (e) {
         if (e.target !== back) return;
 
-        _this11.list.el.dataset.active = '';
+        _this10.list.el.dataset.active = '';
       });
 
       return this;
@@ -760,26 +764,16 @@ var Section = function () {
       parent.appendChild(this.el);
     }
   }, {
-    key: 'createItem',
-    value: function createItem(opts) {
-      opts.section = this;
+    key: 'loadItem',
+    value: function loadItem(key, attrs) {
+      new Item({
+        key: key,
+        section: this,
+        content: attrs.content,
+        order: attrs.order
+      }).build();
 
-      if (!('order' in opts)) {
-        if (opts.first) {
-          opts.order = 1;
-          this.reorderFromIndex(2);
-        } else {
-          opts.order = this.items.length + 1;
-        }
-      }
-
-      var item = new Item(opts).build();
-
-      item.render();
-
-      this.list.items[item.key] = item;
-
-      return item;
+      this.reorderToDOM();
     }
   }, {
     key: 'reorderFromIndex',
@@ -793,14 +787,14 @@ var Section = function () {
   }, {
     key: 'reorderFromDOM',
     value: function reorderFromDOM() {
-      var _this12 = this;
+      var _this11 = this;
 
       var els = this.el.querySelectorAll('.item:not(.gu-mirror)');
       var keys = [].concat(_toConsumableArray(els)).map(function (el) {
         return el.dataset.key;
       });
       var items = keys.map(function (key) {
-        return _this12.list.items[key];
+        return _this11.list.items[key];
       });
 
       items.reduce(function (n, item) {
@@ -810,16 +804,24 @@ var Section = function () {
       }, 1);
     }
   }, {
+    key: 'reorderToDOM',
+    value: function reorderToDOM() {
+      this.items.forEach(function (item) {
+        item.detach();
+        item.render();
+      });
+    }
+  }, {
     key: 'items',
     get: function get() {
-      var _this13 = this;
+      var _this12 = this;
 
       var keys = Object.keys(this.list.items);
 
       return keys.reduce(function (items, key) {
-        var item = _this13.list.items[key];
+        var item = _this12.list.items[key];
 
-        if (item.section === _this13) {
+        if (item.section === _this12) {
           items.push(item);
         }
 
@@ -852,29 +854,29 @@ var DaySection = function (_Section) {
     opts.id = date.format('YYYY-MM-DD');
     opts.name = 'day';
 
-    var _this14 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
+    var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
 
-    _this14.date = date;
-    _this14.title = date.format('dddd');
+    _this13.date = date;
+    _this13.title = date.format('dddd');
 
     if (isSaturday) {
-      _this14.classes.add('weekend');
+      _this13.classes.add('weekend');
     }
 
     if (isToday && isSaturday) {
-      _this14.title = 'This weekend';
+      _this13.title = 'This weekend';
     } else if (isToday) {
-      _this14.title = 'Today';
+      _this13.title = 'Today';
     } else if (isSaturday) {
-      _this14.title = 'Weekend';
+      _this13.title = 'Weekend';
     }
-    return _this14;
+    return _this13;
   }
 
   _createClass(DaySection, [{
     key: 'build',
     value: function build() {
-      var _this15 = this;
+      var _this14 = this;
 
       _get(Object.getPrototypeOf(DaySection.prototype), 'build', this).call(this);
 
@@ -901,7 +903,7 @@ var DaySection = function (_Section) {
         settings.classList.add('settings');
 
         settings.addEventListener('singletap', function (e) {
-          _this15.list.app.modal.dataset.active = '#settings';
+          _this14.list.app.modal.dataset.active = '#settings';
         });
 
         this.header.appendChild(settings);
@@ -927,10 +929,10 @@ var WeekSection = function (_Section2) {
     opts.name = 'week';
     opts.sectionId = 'week';
 
-    var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
+    var _this15 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
 
-    _this16.title = 'This week';
-    return _this16;
+    _this15.title = 'This week';
+    return _this15;
   }
 
   _createClass(WeekSection, [{
@@ -963,10 +965,10 @@ var MonthSection = function (_Section3) {
     opts.name = 'month';
     opts.sectionId = 'month';
 
-    var _this17 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
+    var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
 
-    _this17.title = 'This month';
-    return _this17;
+    _this16.title = 'This month';
+    return _this16;
   }
 
   _createClass(MonthSection, [{
@@ -1004,7 +1006,7 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'build',
     value: function build() {
-      var _this19 = this;
+      var _this18 = this;
 
       _get(Object.getPrototypeOf(DoneSection.prototype), 'build', this).call(this);
 
@@ -1015,7 +1017,7 @@ var DoneSection = function (_Section4) {
       this.el.appendChild(button);
 
       button.addEventListener('singletap', function (e) {
-        _this19.clear();
+        _this18.clear();
       });
 
       return this;
@@ -1023,11 +1025,11 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'clear',
     value: function clear() {
-      var _this20 = this;
+      var _this19 = this;
 
       Object.keys(this.list.items).forEach(function (key) {
-        var item = _this20.list.items[key];
-        if (item.section.id === _this20.id) {
+        var item = _this19.list.items[key];
+        if (item.section.id === _this19.id) {
           item.remove();
         }
       });
@@ -1079,17 +1081,14 @@ var Item = function () {
   function Item(opts) {
     _classCallCheck(this, Item);
 
-    this._editing = !!opts.edit;
+    this._editing = opts.content === '';
     this._section = opts.section;
-    this._content = opts.content || '';
+    this._content = opts.content;
     this.list = this._section.list;
     this._order = opts.order;
+    this.key = opts.key;
 
-    if ('key' in opts) {
-      this.key = opts.key;
-    } else {
-      this.create();
-    }
+    this.list.items[this.key] = this;
 
     // Explicit bindings
     this.onDblClick = this.onDblClick.bind(this);
@@ -1137,11 +1136,7 @@ var Item = function () {
   }, {
     key: 'render',
     value: function render() {
-      if (this.order === 1) {
-        this.section.listEl.insertBefore(this.el, this.section.listEl.firstChild);
-      } else {
-        this.section.listEl.appendChild(this.el);
-      }
+      this.section.listEl.appendChild(this.el);
 
       if (this.editing) {
         this.el.focus();
@@ -1229,37 +1224,26 @@ var Item = function () {
       this.el.addEventListener('mousedown', this.onMouseMove);
     }
   }, {
-    key: 'create',
-    value: function create() {
-      var ref = this.list.app.db.push();
-      this.key = ref.key;
-      ref.set(this.toJSON());
-    }
-  }, {
     key: 'updateOrder',
     value: function updateOrder() {
-      if (!this.key) return;
       var ref = this.list.app.db.child(this.key);
       ref.update({ order: this.order });
     }
   }, {
     key: 'updateSection',
     value: function updateSection() {
-      if (!this.key) return;
       var ref = this.list.app.db.child(this.key);
       ref.update({ group: this.section.id });
     }
   }, {
     key: 'updateContent',
     value: function updateContent() {
-      if (!this.key) return;
       var ref = this.list.app.db.child(this.key);
       ref.update({ content: this.content });
     }
   }, {
     key: 'delete',
     value: function _delete() {
-      if (!this.key) return;
       var ref = this.list.app.db.child(this.key);
       ref.remove();
     }
@@ -1314,16 +1298,16 @@ var Item = function () {
   }, {
     key: 'onTouchStart',
     value: function onTouchStart(e) {
-      var _this23 = this;
+      var _this22 = this;
 
       if ('_allowDrag' in this) return;
 
       App.canDrag = false;
 
       this._timer = setTimeout(function () {
-        _this23._allowDrag = App.canDrag = true;
-        _this23.el.dispatchEvent(e);
-        delete _this23._allowDrag;
+        _this22._allowDrag = App.canDrag = true;
+        _this22.el.dispatchEvent(e);
+        delete _this22._allowDrag;
       }, 500);
     }
   }, {
@@ -1397,6 +1381,15 @@ var Item = function () {
       if (previous !== value) {
         this.updateContent();
       }
+    }
+  }], [{
+    key: 'create',
+    value: function create(opts) {
+      opts.section.list.app.db.push().set({
+        group: opts.section.id,
+        content: '',
+        order: opts.order
+      });
     }
   }]);
 
