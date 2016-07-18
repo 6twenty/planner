@@ -217,12 +217,22 @@ class App {
 
       this.db = firebase.database().ref(`users/${user.uid}/items`)
 
-      this.db.orderByChild('order').on('child_added', data => {
+      const ref = this.db.orderByChild('order')
+
+      ref.on('child_added', data => {
         this.list.loadItem(data.key, data.val())
 
         if (this.modal.dataset.active === '#loading') {
           this.modal.dataset.active = ''
         }
+      })
+
+      ref.on('child_changed', data => {
+        this.list.updateItem(data.key, data.val())
+      })
+
+      ref.on('child_removed', data => {
+        this.list.removeItem(data.key, data.val())
       })
     } else {
       this.modal.dataset.active = '#providers'
@@ -542,13 +552,28 @@ class List {
   }
 
   loadItem(key, attrs) {
-    let section = this.sectionById[attrs.group]
+    const item = new Item({
+      key: key,
+      section: this.sectionById[attrs.group],
+      content: attrs.content,
+      order: attrs.order
+    }).build()
 
-    if (!section) {
-      section = this.sectionById.overdue
-    }
+    item.section.reorderToDOM()
+  }
 
-    section.loadItem(key, attrs)
+  updateItem(key, attrs) {
+    const item = this.items[key]
+
+    item.update(attrs)
+  }
+
+  removeItem(key, attrs) {
+    const item = this.items[key]
+
+    item.detach()
+
+    delete this.items[key]
   }
 
   unload() {
@@ -654,7 +679,7 @@ class Section {
         opts.order = this.items.length + 1
       }
 
-      Item.create(opts)
+      Item.create(this, opts)
     })
 
     header.addEventListener('singletap', e => {
@@ -678,17 +703,6 @@ class Section {
 
   render(parent) {
     parent.appendChild(this.el)
-  }
-
-  loadItem(key, attrs) {
-    new Item({
-      key: key,
-      section: this,
-      content: attrs.content,
-      order: attrs.order
-    }).build()
-
-    this.reorderToDOM()
   }
 
   reorderFromIndex(index) {
@@ -910,13 +924,13 @@ class BacklogSection extends Section {
 class Item {
 
   constructor(opts) {
-    this._editing = opts.content === ''
     this._section = opts.section
     this._content = opts.content
     this.list = this._section.list
     this._order = opts.order
     this.key = opts.key
 
+    this._editing = this.list.editing === this.key
     this.list.items[this.key] = this
 
     // Explicit bindings
@@ -930,12 +944,18 @@ class Item {
     this.onMouseMove = this.onMouseMove.bind(this)
   }
 
-  static create(opts) {
-    opts.section.list.app.db.push().set({
+  static create(section, opts) {
+    const ref = opts.section.list.app.db.push()
+
+    section.list.editing = ref.key
+
+    ref.set({
       group: opts.section.id,
       content: '',
       order: opts.order
     })
+
+    return ref
   }
 
   get editing () {
@@ -944,7 +964,7 @@ class Item {
 
   set editing(value) {
     this._editing = value
-    this.list.app.editing = value
+    this.list.app.editing = value ? this.key : null
   }
 
   get order() {
@@ -968,8 +988,16 @@ class Item {
   set section(value) {
     const previous = this._section
 
+    if (!value) {
+      value = this.list.sectionById.overdue
+    }
+
     this._section = value
     this.el.dataset.sectionId = value.name
+
+    if (!previous) {
+      return
+    }
 
     if (previous !== value) {
       this.updateSection()
@@ -1032,15 +1060,36 @@ class Item {
     }
   }
 
+  update(attrs) {
+    let section = this.list.sectionById[attrs.group]
+
+    if (this.content !== attrs.content) {
+      this._content = attrs.content
+      this.el.innerHTML = App.markdown(this._content)
+    }
+
+    if (this.order !== attrs.order) {
+      this._order = attrs.order
+      this.section.reorderToDOM()
+    }
+
+    if (this.section !== section) {
+      const prev = this.section
+      this.detach()
+      this._section = section
+      section.reorderToDOM()
+    }
+  }
+
   detach() {
     if (!this.el.parentElement) return
     this.section.listEl.removeChild(this.el)
   }
 
   remove() {
-    this.detach()
-    delete this.list.items[this.key]
-    this.section.reorderFromDOM()
+    // this.detach()
+    // delete this.list.items[this.key]
+    // this.section.reorderFromDOM()
     this.delete()
   }
 
@@ -1083,7 +1132,6 @@ class Item {
 
     if (content.replace(/\s/g, '')) {
       this.content = content
-      this.el.innerHTML = App.markdown(content)
     } else {
       return this.remove()
     }

@@ -144,12 +144,22 @@ var App = function () {
 
         this.db = firebase.database().ref('users/' + user.uid + '/items');
 
-        this.db.orderByChild('order').on('child_added', function (data) {
+        var ref = this.db.orderByChild('order');
+
+        ref.on('child_added', function (data) {
           _this.list.loadItem(data.key, data.val());
 
           if (_this.modal.dataset.active === '#loading') {
             _this.modal.dataset.active = '';
           }
+        });
+
+        ref.on('child_changed', function (data) {
+          _this.list.updateItem(data.key, data.val());
+        });
+
+        ref.on('child_removed', function (data) {
+          _this.list.removeItem(data.key, data.val());
         });
       } else {
         this.modal.dataset.active = '#providers';
@@ -626,13 +636,30 @@ var List = function () {
   }, {
     key: 'loadItem',
     value: function loadItem(key, attrs) {
-      var section = this.sectionById[attrs.group];
+      var item = new Item({
+        key: key,
+        section: this.sectionById[attrs.group],
+        content: attrs.content,
+        order: attrs.order
+      }).build();
 
-      if (!section) {
-        section = this.sectionById.overdue;
-      }
+      item.section.reorderToDOM();
+    }
+  }, {
+    key: 'updateItem',
+    value: function updateItem(key, attrs) {
+      var item = this.items[key];
 
-      section.loadItem(key, attrs);
+      item.update(attrs);
+    }
+  }, {
+    key: 'removeItem',
+    value: function removeItem(key, attrs) {
+      var item = this.items[key];
+
+      item.detach();
+
+      delete this.items[key];
     }
   }, {
     key: 'unload',
@@ -738,7 +765,7 @@ var Section = function () {
           opts.order = _this10.items.length + 1;
         }
 
-        Item.create(opts);
+        Item.create(_this10, opts);
       });
 
       header.addEventListener('singletap', function (e) {
@@ -762,18 +789,6 @@ var Section = function () {
     key: 'render',
     value: function render(parent) {
       parent.appendChild(this.el);
-    }
-  }, {
-    key: 'loadItem',
-    value: function loadItem(key, attrs) {
-      new Item({
-        key: key,
-        section: this,
-        content: attrs.content,
-        order: attrs.order
-      }).build();
-
-      this.reorderToDOM();
     }
   }, {
     key: 'reorderFromIndex',
@@ -1081,13 +1096,13 @@ var Item = function () {
   function Item(opts) {
     _classCallCheck(this, Item);
 
-    this._editing = opts.content === '';
     this._section = opts.section;
     this._content = opts.content;
     this.list = this._section.list;
     this._order = opts.order;
     this.key = opts.key;
 
+    this._editing = this.list.editing === this.key;
     this.list.items[this.key] = this;
 
     // Explicit bindings
@@ -1143,6 +1158,28 @@ var Item = function () {
       }
     }
   }, {
+    key: 'update',
+    value: function update(attrs) {
+      var section = this.list.sectionById[attrs.group];
+
+      if (this.content !== attrs.content) {
+        this._content = attrs.content;
+        this.el.innerHTML = App.markdown(this._content);
+      }
+
+      if (this.order !== attrs.order) {
+        this._order = attrs.order;
+        this.section.reorderToDOM();
+      }
+
+      if (this.section !== section) {
+        var prev = this.section;
+        this.detach();
+        this._section = section;
+        section.reorderToDOM();
+      }
+    }
+  }, {
     key: 'detach',
     value: function detach() {
       if (!this.el.parentElement) return;
@@ -1151,9 +1188,9 @@ var Item = function () {
   }, {
     key: 'remove',
     value: function remove() {
-      this.detach();
-      delete this.list.items[this.key];
-      this.section.reorderFromDOM();
+      // this.detach()
+      // delete this.list.items[this.key]
+      // this.section.reorderFromDOM()
       this.delete();
     }
   }, {
@@ -1200,7 +1237,6 @@ var Item = function () {
 
       if (content.replace(/\s/g, '')) {
         this.content = content;
-        this.el.innerHTML = App.markdown(content);
       } else {
         return this.remove();
       }
@@ -1333,7 +1369,7 @@ var Item = function () {
     },
     set: function set(value) {
       this._editing = value;
-      this.list.app.editing = value;
+      this.list.app.editing = value ? this.key : null;
     }
   }, {
     key: 'order',
@@ -1357,8 +1393,16 @@ var Item = function () {
     set: function set(value) {
       var previous = this._section;
 
+      if (!value) {
+        value = this.list.sectionById.overdue;
+      }
+
       this._section = value;
       this.el.dataset.sectionId = value.name;
+
+      if (!previous) {
+        return;
+      }
 
       if (previous !== value) {
         this.updateSection();
@@ -1384,12 +1428,18 @@ var Item = function () {
     }
   }], [{
     key: 'create',
-    value: function create(opts) {
-      opts.section.list.app.db.push().set({
+    value: function create(section, opts) {
+      var ref = opts.section.list.app.db.push();
+
+      section.list.editing = ref.key;
+
+      ref.set({
         group: opts.section.id,
         content: '',
         order: opts.order
       });
+
+      return ref;
     }
   }]);
 
