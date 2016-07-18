@@ -551,7 +551,7 @@ var List = function () {
             return false;
           }
 
-          var item = _this7.items[el.dataset.id];
+          var item = _this7.items[el.dataset.key];
 
           if (item.editing) {
             return false;
@@ -598,7 +598,7 @@ var List = function () {
       });
 
       this.drake.on('drop', function (el, target, source, sibling) {
-        var item = _this7.items[el.dataset.id];
+        var item = _this7.items[el.dataset.key];
         var section = _this7.sectionById[target.parentElement.dataset.id];
         item.section = section;
       });
@@ -642,14 +642,14 @@ var List = function () {
     value: function unload() {
       var _this9 = this;
 
-      var ids = Object.keys(this.items);
+      var keys = Object.keys(this.items);
 
-      ids.forEach(function (id) {
-        var item = _this9.items[id];
+      keys.forEach(function (key) {
+        var item = _this9.items[key];
 
         item.detach();
 
-        delete _this9.items[id];
+        delete _this9.items[key];
       });
     }
   }, {
@@ -664,8 +664,8 @@ var List = function () {
 
       var regex = new RegExp(App.escapeRegex(this.app.filtered), 'i');
 
-      Object.keys(this.items).forEach(function (id) {
-        var item = _this10.items[id];
+      Object.keys(this.items).forEach(function (key) {
+        var item = _this10.items[key];
 
         if (regex.test(item.content)) {
           item.show();
@@ -777,7 +777,7 @@ var Section = function () {
 
       item.render();
 
-      this.list.items[item.id] = item;
+      this.list.items[item.key] = item;
 
       return item;
     }
@@ -796,11 +796,11 @@ var Section = function () {
       var _this12 = this;
 
       var els = this.el.querySelectorAll('.item:not(.gu-mirror)');
-      var ids = [].concat(_toConsumableArray(els)).map(function (el) {
-        return el.dataset.id;
+      var keys = [].concat(_toConsumableArray(els)).map(function (el) {
+        return el.dataset.key;
       });
-      var items = ids.map(function (id) {
-        return _this12.list.items[id];
+      var items = keys.map(function (key) {
+        return _this12.list.items[key];
       });
 
       items.reduce(function (n, item) {
@@ -1025,8 +1025,8 @@ var DoneSection = function (_Section4) {
     value: function clear() {
       var _this20 = this;
 
-      Object.keys(this.list.items).forEach(function (id) {
-        var item = _this20.list.items[id];
+      Object.keys(this.list.items).forEach(function (key) {
+        var item = _this20.list.items[key];
         if (item.section.id === _this20.id) {
           item.remove();
         }
@@ -1079,13 +1079,17 @@ var Item = function () {
   function Item(opts) {
     _classCallCheck(this, Item);
 
-    this.id = App.uniqueId();
     this._editing = !!opts.edit;
     this._section = opts.section;
     this._content = opts.content || '';
     this.list = this._section.list;
     this._order = opts.order;
-    this.key = opts.key;
+
+    if ('key' in opts) {
+      this.key = opts.key;
+    } else {
+      this.create();
+    }
 
     // Explicit bindings
     this.onDblClick = this.onDblClick.bind(this);
@@ -1114,7 +1118,7 @@ var Item = function () {
 
       el.classList.add('item');
       el.dataset.sectionType = this.section.name;
-      el.dataset.id = this.id;
+      el.dataset.key = this.key;
       el.innerHTML = App.markdown(this.content);
       el.tabIndex = 1;
 
@@ -1153,7 +1157,7 @@ var Item = function () {
     key: 'remove',
     value: function remove() {
       this.detach();
-      delete this.list.items[this.id];
+      delete this.list.items[this.key];
       this.section.reorderFromDOM();
       this.delete();
     }
@@ -1225,6 +1229,13 @@ var Item = function () {
       this.el.addEventListener('mousedown', this.onMouseMove);
     }
   }, {
+    key: 'create',
+    value: function create() {
+      var ref = this.list.app.db.push();
+      this.key = ref.key;
+      ref.set(this.toJSON());
+    }
+  }, {
     key: 'updateOrder',
     value: function updateOrder() {
       if (!this.key) return;
@@ -1241,14 +1252,9 @@ var Item = function () {
   }, {
     key: 'updateContent',
     value: function updateContent() {
-      if (this.key) {
-        var ref = this.list.app.db.child(this.key);
-        ref.update({ content: this.content });
-      } else {
-        var _ref = this.list.app.db.push();
-        this.key = _ref.key;
-        _ref.set(this.toJSON());
-      }
+      if (!this.key) return;
+      var ref = this.list.app.db.child(this.key);
+      ref.update({ content: this.content });
     }
   }, {
     key: 'delete',

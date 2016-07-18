@@ -468,7 +468,7 @@ class List {
           return false
         }
 
-        const item = this.items[el.dataset.id]
+        const item = this.items[el.dataset.key]
 
         if (item.editing) {
           return false
@@ -515,7 +515,7 @@ class List {
     })
 
     this.drake.on('drop', (el, target, source, sibling) => {
-      const item = this.items[el.dataset.id]
+      const item = this.items[el.dataset.key]
       const section = this.sectionById[target.parentElement.dataset.id]
       item.section = section
     })
@@ -553,14 +553,14 @@ class List {
   }
 
   unload() {
-    const ids = Object.keys(this.items)
+    const keys = Object.keys(this.items)
 
-    ids.forEach(id => {
-      const item = this.items[id]
+    keys.forEach(key => {
+      const item = this.items[key]
 
       item.detach()
 
-      delete this.items[id]
+      delete this.items[key]
     })
   }
 
@@ -571,8 +571,8 @@ class List {
   filter() {
     const regex = new RegExp(App.escapeRegex(this.app.filtered), 'i')
 
-    Object.keys(this.items).forEach(id => {
-      const item = this.items[id]
+    Object.keys(this.items).forEach(key => {
+      const item = this.items[key]
 
       if (regex.test(item.content)) {
         item.show()
@@ -690,7 +690,7 @@ class Section {
 
     item.render()
 
-    this.list.items[item.id] = item
+    this.list.items[item.key] = item
 
     return item
   }
@@ -705,8 +705,8 @@ class Section {
 
   reorderFromDOM() {
     const els = this.el.querySelectorAll('.item:not(.gu-mirror)')
-    const ids = [...els].map(el => { return el.dataset.id })
-    const items = ids.map(id => { return this.list.items[id] })
+    const keys = [...els].map(el => { return el.dataset.key })
+    const items = keys.map(key => { return this.list.items[key] })
 
     items.reduce((n, item) => {
       item.order = n
@@ -869,8 +869,8 @@ class DoneSection extends Section {
   }
 
   clear() {
-    Object.keys(this.list.items).forEach(id => {
-      const item = this.list.items[id]
+    Object.keys(this.list.items).forEach(key => {
+      const item = this.list.items[key]
       if (item.section.id === this.id) {
         item.remove()
       }
@@ -907,13 +907,17 @@ class BacklogSection extends Section {
 class Item {
 
   constructor(opts) {
-    this.id = App.uniqueId()
     this._editing = !!opts.edit
     this._section = opts.section
     this._content = opts.content || ''
     this.list = this._section.list
     this._order = opts.order
-    this.key = opts.key
+
+    if ('key' in opts) {
+      this.key = opts.key
+    } else {
+      this.create()
+    }
 
     // Explicit bindings
     this.onDblClick = this.onDblClick.bind(this)
@@ -995,7 +999,7 @@ class Item {
 
     el.classList.add('item')
     el.dataset.sectionType = this.section.name
-    el.dataset.id = this.id
+    el.dataset.key = this.key
     el.innerHTML = App.markdown(this.content)
     el.tabIndex = 1
 
@@ -1031,7 +1035,7 @@ class Item {
 
   remove() {
     this.detach()
-    delete this.list.items[this.id]
+    delete this.list.items[this.key]
     this.section.reorderFromDOM()
     this.delete()
   }
@@ -1097,6 +1101,12 @@ class Item {
     this.el.addEventListener('mousedown', this.onMouseMove)
   }
 
+  create() {
+    const ref = this.list.app.db.push()
+    this.key = ref.key
+    ref.set(this.toJSON())
+  }
+
   updateOrder() {
     if (!this.key) return
     const ref = this.list.app.db.child(this.key)
@@ -1110,14 +1120,9 @@ class Item {
   }
 
   updateContent() {
-    if (this.key) {
-      const ref = this.list.app.db.child(this.key)
-      ref.update({ content: this.content })
-    } else {
-      const ref = this.list.app.db.push()
-      this.key = ref.key
-      ref.set(this.toJSON())
-    }
+    if (!this.key) return
+    const ref = this.list.app.db.child(this.key)
+    ref.update({ content: this.content })
   }
 
   delete() {
