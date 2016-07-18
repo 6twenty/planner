@@ -31,8 +31,9 @@ class App {
 
     this.list = new List({
       app: this
-    }).build()
+    })
 
+    this.list.build()
     this.list.render()
 
     this.loading()
@@ -444,8 +445,9 @@ class List {
         list: this,
         date: date,
         sectionId: day
-      }).build()
+      })
 
+      section.build()
       section.render(this.el)
 
       this.sections.push(section)
@@ -458,8 +460,9 @@ class List {
     sectionClasses.forEach(SectionClass => {
       const section = new SectionClass({
         list: this
-      }).build()
+      })
 
+      section.build()
       section.render(this.el)
 
       this.sections.push(section)
@@ -557,8 +560,9 @@ class List {
       section: this.sectionById[attrs.group],
       content: attrs.content,
       order: attrs.order
-    }).build()
+    })
 
+    item.build()
     item.section.reorderToDOM()
   }
 

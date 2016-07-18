@@ -47,8 +47,9 @@ var App = function () {
 
     this.list = new List({
       app: this
-    }).build();
+    });
 
+    this.list.build();
     this.list.render();
 
     this.loading();
@@ -511,8 +512,9 @@ var List = function () {
           list: _this6,
           date: date,
           sectionId: day
-        }).build();
+        });
 
+        section.build();
         section.render(_this6.el);
 
         _this6.sections.push(section);
@@ -524,8 +526,9 @@ var List = function () {
       sectionClasses.forEach(function (SectionClass) {
         var section = new SectionClass({
           list: _this6
-        }).build();
+        });
 
+        section.build();
         section.render(_this6.el);
 
         _this6.sections.push(section);
@@ -641,8 +644,9 @@ var List = function () {
         section: this.sectionById[attrs.group],
         content: attrs.content,
         order: attrs.order
-      }).build();
+      });
 
+      item.build();
       item.section.reorderToDOM();
     }
   }, {
