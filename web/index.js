@@ -19,7 +19,6 @@ var App = function () {
     _classCallCheck(this, App);
 
     this.el = document.body;
-    this.editing = false;
     this._filtered = '';
 
     if (navigator.standalone) {
@@ -41,6 +40,7 @@ var App = function () {
 
     App.canDrag = true;
 
+    this.loop();
     this.hammer();
     this.build();
     this.observe();
@@ -96,9 +96,10 @@ var App = function () {
   }, {
     key: 'signIn',
     value: function signIn(provider) {
+      var authProvider = new firebase.auth[provider]();
+
       this.modal.dataset.active = '#loading';
       sessionStorage.setItem('awaitingAuthRedirect', moment().format());
-      var authProvider = new firebase.auth[provider]();
       firebase.auth().signInWithRedirect(authProvider);
     }
   }, {
@@ -147,12 +148,14 @@ var App = function () {
 
         var ref = this.db.orderByChild('order');
 
-        ref.on('child_added', function (data) {
-          _this.list.loadItem(data.key, data.val());
-
+        ref.limitToFirst(1).once('value', function (data) {
           if (_this.modal.dataset.active === '#loading') {
             _this.modal.dataset.active = '';
           }
+        });
+
+        ref.on('child_added', function (data) {
+          _this.list.loadItem(data.key, data.val());
         });
 
         ref.on('child_changed', function (data) {
@@ -165,6 +168,45 @@ var App = function () {
       } else {
         this.modal.dataset.active = '#providers';
       }
+    }
+  }, {
+    key: 'loop',
+    value: function loop() {
+      var _this2 = this;
+
+      requestAnimationFrame(function (timestamp) {
+        _this2.tick();
+      });
+    }
+  }, {
+    key: 'tick',
+    value: function tick() {
+      var _this3 = this;
+
+      if (this.db && Object.keys(this.list.updates).length > 0) {
+        var keys = Object.keys(this.list.updates);
+
+        keys.forEach(function (key) {
+          var item = _this3.list.items[key];
+          var attrs = _this3.list.updates[key];
+
+          if (!('group' in attrs)) attrs.group = item.section.id;
+          if (!('content' in attrs)) attrs.content = item.content;
+          if (!('order' in attrs)) attrs.order = item.order;
+        });
+
+        this.db.update(this.list.updates);
+        this.list.updates = {};
+      }
+
+      this.list.sections.filter(function (section) {
+        return section.stale;
+      }).forEach(function (section) {
+        section.stale = false;
+        section.reorderToDOM();
+      });
+
+      this.loop();
     }
   }, {
     key: 'build',
@@ -206,21 +248,20 @@ var App = function () {
   }, {
     key: 'buildModalProviders',
     value: function buildModalProviders() {
-      var _this2 = this;
+      var _this4 = this;
 
       var section = document.createElement('section');
-
-      section.dataset.id = 'providers';
-
       var a = document.createElement('a');
       var img = document.createElement('img');
+
+      section.dataset.id = 'providers';
       img.src = '/google.svg';
       a.classList.add('provider');
       a.appendChild(img);
       section.appendChild(a);
 
       a.addEventListener('singletap', function (e) {
-        _this2.signIn('GoogleAuthProvider');
+        _this4.signIn('GoogleAuthProvider');
       });
 
       this.modal.appendChild(section);
@@ -228,7 +269,7 @@ var App = function () {
   }, {
     key: 'buildModalSettings',
     value: function buildModalSettings() {
-      var _this3 = this;
+      var _this5 = this;
 
       var section = document.createElement('section');
       var close = document.createElement('a');
@@ -239,16 +280,17 @@ var App = function () {
       profile.classList.add('profile');
       signOut.innerText = 'Sign out';
       section.dataset.id = 'settings';
+
       section.appendChild(close);
       section.appendChild(profile);
       section.appendChild(signOut);
 
       close.addEventListener('singletap', function (e) {
-        _this3.list.app.modal.dataset.active = '';
+        _this5.list.app.modal.dataset.active = '';
       });
 
       signOut.addEventListener('singletap', function (e) {
-        _this3.signOut();
+        _this5.signOut();
       });
 
       this.modal.appendChild(section);
@@ -267,11 +309,11 @@ var App = function () {
   }, {
     key: 'observe',
     value: function observe() {
-      var _this4 = this;
+      var _this6 = this;
 
       // For regular keys, use `keypress` (provides the correct char code)
       window.addEventListener('keypress', function (e) {
-        if (_this4.editing) return;
+        if (_this6.list.editing) return;
         if (e.metaKey) return;
         if (e.ctrlKey) return;
         if (e.altKey) return;
@@ -281,12 +323,12 @@ var App = function () {
 
         if (!char) return;
 
-        _this4.filtered += char;
+        _this6.filtered += char;
       });
 
       // For special keys (esc and backspace), use `keydown`
       window.addEventListener('keydown', function (e) {
-        if (_this4.editing) return;
+        if (_this6.list.editing) return;
         if (e.metaKey) return;
         if (e.ctrlKey) return;
         if (e.altKey) return;
@@ -296,19 +338,19 @@ var App = function () {
           // Esc
           e.preventDefault();
 
-          if (_this4.modal.dataset.active === '#settings') {
-            _this4.modal.dataset.active = '';
+          if (_this6.modal.dataset.active === '#settings') {
+            _this6.modal.dataset.active = '';
           }
 
           if (document.activeElement) {
             document.activeElement.blur();
           }
 
-          _this4.filtered = '';
-          if (_this4.list.drake.dragging) {
-            _this4.list.drake.cancel(true);
-            if (_this4.list.originalSectionId) {
-              _this4.list.el.dataset.active = '#' + _this4.list.originalSectionId;
+          _this6.filtered = '';
+          if (_this6.list.drake.dragging) {
+            _this6.list.drake.cancel(true);
+            if (_this6.list.originalSectionId) {
+              _this6.list.el.dataset.active = '#' + _this6.list.originalSectionId;
             }
           }
         }
@@ -316,29 +358,29 @@ var App = function () {
         if (e.which === 8) {
           // Backspace
           e.preventDefault();
-          _this4.filtered = _this4.filtered.slice(0, _this4.filtered.length - 1);
+          _this6.filtered = _this6.filtered.slice(0, _this6.filtered.length - 1);
         }
       });
     }
   }, {
     key: 'load',
     value: function load(cached) {
-      var _this5 = this;
+      var _this7 = this;
 
       var orders = {};
 
       var updates = cached.reduce(function (items, item) {
-        var section = _this5.list.sectionById[item.group];
+        var section = _this7.list.sectionById[item.group];
 
         if (!section) {
-          section = _this5.list.sectionById.overdue;
+          section = _this7.list.sectionById.overdue;
         }
 
         if (!(section.id in orders)) {
           orders[section.id] = 0;
         }
 
-        var ref = _this5.list.app.db.push();
+        var ref = _this7.list.app.db.push();
 
         items[ref.key] = {
           group: section.id,
@@ -421,6 +463,7 @@ var App = function () {
 
       var isWithinCodeBlock = false;
       var array = string.split('');
+
       string = array.map(function (char, i) {
         var lastChar = array[i - 1];
         var nextChar = array[i + 1];
@@ -482,12 +525,13 @@ var List = function () {
     this.app = opts.app;
     this.el = document.createElement('main');
     this.items = {};
+    this.updates = {};
   }
 
   _createClass(List, [{
     key: 'build',
     value: function build() {
-      var _this6 = this;
+      var _this8 = this;
 
       this.sections = []; // Ordered, for rendering sequentially
       this.sectionById = {}; // For easy lookup
@@ -509,30 +553,30 @@ var List = function () {
         }
 
         var section = new DaySection({
-          list: _this6,
+          list: _this8,
           date: date,
           sectionId: day
         });
 
         section.build();
-        section.render(_this6.el);
+        section.render(_this8.el);
 
-        _this6.sections.push(section);
-        _this6.sectionById[section.id] = section;
+        _this8.sections.push(section);
+        _this8.sectionById[section.id] = section;
       });
 
       var sectionClasses = [WeekSection, MonthSection, BacklogSection, OverdueSection, DoneSection];
 
       sectionClasses.forEach(function (SectionClass) {
         var section = new SectionClass({
-          list: _this6
+          list: _this8
         });
 
         section.build();
-        section.render(_this6.el);
+        section.render(_this8.el);
 
-        _this6.sections.push(section);
-        _this6.sectionById[section.id] = section;
+        _this8.sections.push(section);
+        _this8.sectionById[section.id] = section;
       });
 
       this.dragula();
@@ -552,7 +596,7 @@ var List = function () {
 
       return dragula;
     }(function () {
-      var _this7 = this;
+      var _this9 = this;
 
       var lists = this.sections.map(function (section) {
         return section.listEl;
@@ -574,16 +618,16 @@ var List = function () {
             return false;
           }
 
-          var item = _this7.items[el.dataset.key];
+          var item = _this9.items[el.dataset.key];
 
-          if (item.editing) {
+          if (item.el.contentEditable === 'true') {
             return false;
           }
 
           return true;
         },
         accepts: function accepts(el, target, source, sibling) {
-          var section = _this7.sectionById[target.parentElement.dataset.id];
+          var section = _this9.sectionById[target.parentElement.dataset.id];
           var active = section.list.el.querySelector('section.over');
 
           if (active) {
@@ -591,7 +635,7 @@ var List = function () {
           }
 
           section.el.classList.add('over');
-          _this7.el.dataset.active = '#' + section.sectionId;
+          _this9.el.dataset.active = '#' + section.sectionId;
 
           if (target.nodeName === 'HEADER') {
             if (target.parentElement === el.parentElement.parentElement) {
@@ -608,12 +652,12 @@ var List = function () {
       });
 
       this.drake.on('drag', function (el) {
-        _this7.originalSectionId = el.parentElement.parentElement.dataset.sectionId;
+        _this9.originalSectionId = el.parentElement.parentElement.dataset.sectionId;
         el.parentElement.parentElement.classList.add('over');
       });
 
       this.drake.on('dragend', function (el) {
-        var active = _this7.el.querySelector('section.over');
+        var active = _this9.el.querySelector('section.over');
 
         if (active) {
           active.classList.remove('over');
@@ -621,9 +665,14 @@ var List = function () {
       });
 
       this.drake.on('drop', function (el, target, source, sibling) {
-        var item = _this7.items[el.dataset.key];
-        var section = _this7.sectionById[target.parentElement.dataset.id];
-        item.section = section;
+        var item = _this9.items[el.dataset.key];
+        var section = _this9.sectionById[target.parentElement.dataset.id];
+
+        section.reorderFromDOM();
+
+        if (section !== item.section) {
+          item.section.reorderFromDOM();
+        }
       });
 
       this.drake.on('cloned', function (clone, original, type) {
@@ -632,7 +681,7 @@ var List = function () {
       });
 
       this.drake.on('shadow', function (el, container, source) {
-        var mirror = _this7.el.querySelector('.item.gu-mirror');
+        var mirror = _this9.el.querySelector('.item.gu-mirror');
         mirror.dataset.sectionType = container.parentElement.dataset.name;
       });
     })
@@ -641,43 +690,45 @@ var List = function () {
     value: function loadItem(key, attrs) {
       var item = new Item({
         key: key,
-        section: this.sectionById[attrs.group],
+        list: this,
+        group: attrs.group,
         content: attrs.content,
         order: attrs.order
       });
 
       item.build();
-      item.section.reorderToDOM();
+      item.section.stale = true;
     }
   }, {
     key: 'updateItem',
     value: function updateItem(key, attrs) {
       var item = this.items[key];
+      var previousSection = item.section;
 
-      item.update(attrs);
+      item.init(attrs);
+      item.rebuild();
+
+      item.section.stale = true;
+      previousSection.stale = true;
     }
   }, {
     key: 'removeItem',
     value: function removeItem(key, attrs) {
       var item = this.items[key];
 
-      item.detach();
-
-      delete this.items[key];
+      item.remove();
     }
   }, {
     key: 'unload',
     value: function unload() {
-      var _this8 = this;
+      var _this10 = this;
 
       var keys = Object.keys(this.items);
 
       keys.forEach(function (key) {
-        var item = _this8.items[key];
+        var item = _this10.items[key];
 
-        item.detach();
-
-        delete _this8.items[key];
+        item.remove();
       });
     }
   }, {
@@ -688,12 +739,12 @@ var List = function () {
   }, {
     key: 'filter',
     value: function filter() {
-      var _this9 = this;
+      var _this11 = this;
 
       var regex = new RegExp(App.escapeRegex(this.app.filtered), 'i');
 
       Object.keys(this.items).forEach(function (key) {
-        var item = _this9.items[key];
+        var item = _this11.items[key];
 
         if (regex.test(item.content)) {
           item.show();
@@ -719,32 +770,41 @@ var Section = function () {
     this.name = opts.name;
     this.title = opts.name;
     this.sectionId = opts.sectionId;
+
     this.classes = new Set();
     this.classes.add(opts.name);
     this.classes.add(opts.sectionId);
+
+    this.stale = false;
   }
 
   _createClass(Section, [{
     key: 'build',
     value: function build() {
-      var _this10 = this;
+      var _this12 = this;
 
       var section = document.createElement('section');
       var header = document.createElement('header');
       var back = document.createElement('button');
       var list = document.createElement('div');
+
       section.appendChild(header);
       section.appendChild(list);
 
       section.dataset.id = this.id;
       section.dataset.name = this.name;
       section.dataset.sectionId = this.sectionId;
+
       this.classes.forEach(function (className) {
         section.classList.add(className);
       });
 
       var emoji = this.emoji();
-      if (emoji) header.dataset.emoji = emoji;
+
+      if (emoji) {
+        header.dataset.emoji = emoji;
+      }
+
       header.innerText = this.title;
       back.classList.add('back');
       list.classList.add('list');
@@ -755,33 +815,43 @@ var Section = function () {
       this.listEl = list;
 
       this.el.addEventListener('doubletap', function (e) {
-        if (e.target !== _this10.listEl && e.target !== _this10.header) return;
-
-        var first = e.target !== _this10.listEl;
-        var opts = {};
-
-        opts.section = _this10;
-
-        if (first) {
-          opts.order = 1;
-          _this10.reorderFromIndex(2);
-        } else {
-          opts.order = _this10.items.length + 1;
+        if (e.target !== _this12.listEl && e.target !== _this12.header) {
+          return;
         }
 
-        Item.create(_this10, opts);
+        var first = e.target !== _this12.listEl;
+        var order = void 0;
+
+        if (first) {
+          order = 1;
+          _this12.reorderFromIndex(2);
+        } else {
+          order = _this12.items.length + 1;
+        }
+
+        var item = new Item({
+          list: _this12.list
+        });
+
+        _this12.list.editing = item.key;
+
+        item.update({
+          group: _this12.id,
+          content: '',
+          order: order
+        });
       });
 
       header.addEventListener('singletap', function (e) {
         if (e.target !== header) return;
 
-        _this10.list.el.dataset.active = '#' + _this10.sectionId;
+        _this12.list.el.dataset.active = '#' + _this12.sectionId;
       });
 
       back.addEventListener('singletap', function (e) {
         if (e.target !== back) return;
 
-        _this10.list.el.dataset.active = '';
+        _this12.list.el.dataset.active = '';
       });
 
       return this;
@@ -806,18 +876,21 @@ var Section = function () {
   }, {
     key: 'reorderFromDOM',
     value: function reorderFromDOM() {
-      var _this11 = this;
+      var _this13 = this;
 
       var els = this.el.querySelectorAll('.item:not(.gu-mirror)');
       var keys = [].concat(_toConsumableArray(els)).map(function (el) {
         return el.dataset.key;
       });
       var items = keys.map(function (key) {
-        return _this11.list.items[key];
+        return _this13.list.items[key];
       });
 
       items.reduce(function (n, item) {
-        item.order = n;
+        item.update({
+          group: _this13.id,
+          order: n
+        });
 
         return ++n;
       }, 1);
@@ -833,14 +906,14 @@ var Section = function () {
   }, {
     key: 'items',
     get: function get() {
-      var _this12 = this;
+      var _this14 = this;
 
       var keys = Object.keys(this.list.items);
 
       return keys.reduce(function (items, key) {
-        var item = _this12.list.items[key];
+        var item = _this14.list.items[key];
 
-        if (item.section === _this12) {
+        if (item.section === _this14) {
           items.push(item);
         }
 
@@ -873,29 +946,29 @@ var DaySection = function (_Section) {
     opts.id = date.format('YYYY-MM-DD');
     opts.name = 'day';
 
-    var _this13 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
+    var _this15 = _possibleConstructorReturn(this, Object.getPrototypeOf(DaySection).call(this, opts));
 
-    _this13.date = date;
-    _this13.title = date.format('dddd');
+    _this15.date = date;
+    _this15.title = date.format('dddd');
 
     if (isSaturday) {
-      _this13.classes.add('weekend');
+      _this15.classes.add('weekend');
     }
 
     if (isToday && isSaturday) {
-      _this13.title = 'This weekend';
+      _this15.title = 'This weekend';
     } else if (isToday) {
-      _this13.title = 'Today';
+      _this15.title = 'Today';
     } else if (isSaturday) {
-      _this13.title = 'Weekend';
+      _this15.title = 'Weekend';
     }
-    return _this13;
+    return _this15;
   }
 
   _createClass(DaySection, [{
     key: 'build',
     value: function build() {
-      var _this14 = this;
+      var _this16 = this;
 
       _get(Object.getPrototypeOf(DaySection.prototype), 'build', this).call(this);
 
@@ -922,7 +995,7 @@ var DaySection = function (_Section) {
         settings.classList.add('settings');
 
         settings.addEventListener('singletap', function (e) {
-          _this14.list.app.modal.dataset.active = '#settings';
+          _this16.list.app.modal.dataset.active = '#settings';
         });
 
         this.header.appendChild(settings);
@@ -948,10 +1021,10 @@ var WeekSection = function (_Section2) {
     opts.name = 'week';
     opts.sectionId = 'week';
 
-    var _this15 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
+    var _this17 = _possibleConstructorReturn(this, Object.getPrototypeOf(WeekSection).call(this, opts));
 
-    _this15.title = 'This week';
-    return _this15;
+    _this17.title = 'This week';
+    return _this17;
   }
 
   _createClass(WeekSection, [{
@@ -984,10 +1057,10 @@ var MonthSection = function (_Section3) {
     opts.name = 'month';
     opts.sectionId = 'month';
 
-    var _this16 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
+    var _this18 = _possibleConstructorReturn(this, Object.getPrototypeOf(MonthSection).call(this, opts));
 
-    _this16.title = 'This month';
-    return _this16;
+    _this18.title = 'This month';
+    return _this18;
   }
 
   _createClass(MonthSection, [{
@@ -1025,7 +1098,7 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'build',
     value: function build() {
-      var _this18 = this;
+      var _this20 = this;
 
       _get(Object.getPrototypeOf(DoneSection.prototype), 'build', this).call(this);
 
@@ -1036,7 +1109,7 @@ var DoneSection = function (_Section4) {
       this.el.appendChild(button);
 
       button.addEventListener('singletap', function (e) {
-        _this18.clear();
+        _this20.clear();
       });
 
       return this;
@@ -1044,12 +1117,12 @@ var DoneSection = function (_Section4) {
   }, {
     key: 'clear',
     value: function clear() {
-      var _this19 = this;
+      var _this21 = this;
 
       Object.keys(this.list.items).forEach(function (key) {
-        var item = _this19.list.items[key];
-        if (item.section.id === _this19.id) {
-          item.remove();
+        var item = _this21.list.items[key];
+        if (item.section.id === _this21.id) {
+          item.delete();
         }
       });
     }
@@ -1100,34 +1173,40 @@ var Item = function () {
   function Item(opts) {
     _classCallCheck(this, Item);
 
-    this._section = opts.section;
-    this._content = opts.content;
-    this.list = this._section.list;
-    this._order = opts.order;
-    this.key = opts.key;
+    this.list = opts.list;
 
-    this._editing = this.list.editing === this.key;
+    this.init(opts);
+
+    if (opts.key) {
+      this.key = opts.key;
+    } else {
+      var ref = this.list.app.db.push();
+      this.key = ref.key;
+    }
+
     this.list.items[this.key] = this;
 
-    // Explicit bindings
-    this.onDblClick = this.onDblClick.bind(this);
-    this.onKeydown = this.onKeydown.bind(this);
-    this.onBlur = this.onBlur.bind(this);
-    this.onPaste = this.onPaste.bind(this);
-    this.onTouchStart = this.onTouchStart.bind(this);
-    this.onTouchMove = this.onTouchMove.bind(this);
-    this.onTouchEnd = this.onTouchEnd.bind(this);
-    this.onMouseMove = this.onMouseMove.bind(this);
+    this.bindings();
   }
 
   _createClass(Item, [{
-    key: 'toJSON',
-    value: function toJSON() {
-      return {
-        group: this.section.id,
-        content: this.content,
-        order: this.order
-      };
+    key: 'init',
+    value: function init(attrs) {
+      if ('group' in attrs) this.section = this.list.sectionById[attrs.group];
+      if ('content' in attrs) this.content = attrs.content;
+      if ('order' in attrs) this.order = attrs.order;
+    }
+  }, {
+    key: 'bindings',
+    value: function bindings() {
+      this.onDblClick = this.onDblClick.bind(this);
+      this.onKeydown = this.onKeydown.bind(this);
+      this.onBlur = this.onBlur.bind(this);
+      this.onPaste = this.onPaste.bind(this);
+      this.onTouchStart = this.onTouchStart.bind(this);
+      this.onTouchMove = this.onTouchMove.bind(this);
+      this.onTouchEnd = this.onTouchEnd.bind(this);
+      this.onMouseMove = this.onMouseMove.bind(this);
     }
   }, {
     key: 'build',
@@ -1144,58 +1223,40 @@ var Item = function () {
 
       this.el = el;
 
-      if (this.editing) {
+      if (this.list.editing === this.key) {
         this.startEditing();
       } else {
         this.awaitEditing();
       }
-
-      return this;
+    }
+  }, {
+    key: 'rebuild',
+    value: function rebuild() {
+      this.el.dataset.sectionType = this.section.name;
+      this.el.innerHTML = App.markdown(this.content);
     }
   }, {
     key: 'render',
     value: function render() {
       this.section.listEl.appendChild(this.el);
 
-      if (this.editing) {
+      if (this.list.editing === this.key) {
         this.el.focus();
-      }
-    }
-  }, {
-    key: 'update',
-    value: function update(attrs) {
-      var section = this.list.sectionById[attrs.group];
-
-      if (this.content !== attrs.content) {
-        this._content = attrs.content;
-        this.el.innerHTML = App.markdown(this._content);
-      }
-
-      if (this.order !== attrs.order) {
-        this._order = attrs.order;
-        this.section.reorderToDOM();
-      }
-
-      if (this.section !== section) {
-        var prev = this.section;
-        this.detach();
-        this._section = section;
-        section.reorderToDOM();
       }
     }
   }, {
     key: 'detach',
     value: function detach() {
       if (!this.el.parentElement) return;
-      this.section.listEl.removeChild(this.el);
+
+      this.el.parentElement.removeChild(this.el);
     }
   }, {
     key: 'remove',
     value: function remove() {
-      // this.detach()
-      // delete this.list.items[this.key]
-      // this.section.reorderFromDOM()
-      this.delete();
+      this.detach();
+
+      delete this.list.items[this.key];
     }
   }, {
     key: 'show',
@@ -1210,7 +1271,7 @@ var Item = function () {
   }, {
     key: 'startEditing',
     value: function startEditing() {
-      this.editing = true;
+      this.list.editing = this.key;
       this.el.contentEditable = 'true';
       this.el.innerText = this.content;
 
@@ -1232,20 +1293,20 @@ var Item = function () {
   }, {
     key: 'finishEditing',
     value: function finishEditing() {
-      this.editing = false;
       this.el.contentEditable = 'false';
       this.el.removeEventListener('blur', this.onBlur);
       this.el.removeEventListener('paste', this.onPaste);
 
       var content = this.el.innerText;
 
-      if (content.replace(/\s/g, '')) {
-        this.content = content;
-      } else {
-        return this.remove();
+      if (content.replace(/\s/g, '') === '') {
+        return this.delete();
       }
 
       this.awaitEditing();
+      this.update({
+        content: content
+      });
     }
   }, {
     key: 'cancelEditing',
@@ -1264,37 +1325,30 @@ var Item = function () {
       this.el.addEventListener('mousedown', this.onMouseMove);
     }
   }, {
-    key: 'updateOrder',
-    value: function updateOrder() {
-      var ref = this.list.app.db.child(this.key);
-      ref.update({ order: this.order });
-    }
-  }, {
-    key: 'updateSection',
-    value: function updateSection() {
-      var ref = this.list.app.db.child(this.key);
-      ref.update({ group: this.section.id });
-    }
-  }, {
-    key: 'updateContent',
-    value: function updateContent() {
-      var ref = this.list.app.db.child(this.key);
-      ref.update({ content: this.content });
+    key: 'update',
+    value: function update(attrs) {
+      if (!attrs) {
+        attrs = {};
+      }
+
+      this.list.updates[this.key] = attrs;
     }
   }, {
     key: 'delete',
     value: function _delete() {
       var ref = this.list.app.db.child(this.key);
+
       ref.remove();
     }
   }, {
     key: 'focus',
     value: function focus() {
-      this.el.focus();
       var range = document.createRange();
+      var selection = window.getSelection();
+
+      this.el.focus();
       range.selectNodeContents(this.el);
       range.collapse(false);
-      var selection = window.getSelection();
       selection.removeAllRanges();
       selection.addRange(range);
     }
@@ -1308,7 +1362,7 @@ var Item = function () {
     value: function onKeydown(e) {
       if (e.which === 13 && !e.shiftKey) e.preventDefault();
 
-      if (this.editing) {
+      if (this.el.contentEditable === 'true') {
         if (e.which === 27) this.cancelEditing(); // Esc
         if (e.which === 13 && !e.shiftKey) this.el.blur(); // Enter
       } else {
@@ -1338,16 +1392,16 @@ var Item = function () {
   }, {
     key: 'onTouchStart',
     value: function onTouchStart(e) {
-      var _this22 = this;
+      var _this24 = this;
 
       if ('_allowDrag' in this) return;
 
       App.canDrag = false;
 
       this._timer = setTimeout(function () {
-        _this22._allowDrag = App.canDrag = true;
-        _this22.el.dispatchEvent(e);
-        delete _this22._allowDrag;
+        _this24._allowDrag = App.canDrag = true;
+        _this24.el.dispatchEvent(e);
+        delete _this24._allowDrag;
       }, 500);
     }
   }, {
@@ -1367,83 +1421,16 @@ var Item = function () {
       App.canDrag = true;
     }
   }, {
-    key: 'editing',
-    get: function get() {
-      return this._editing;
-    },
-    set: function set(value) {
-      this._editing = value;
-      this.list.app.editing = value ? this.key : null;
-    }
-  }, {
-    key: 'order',
-    get: function get() {
-      return this._order;
-    },
-    set: function set(value) {
-      var previous = this._order;
-
-      this._order = value;
-
-      if (previous !== value) {
-        this.updateOrder();
-      }
-    }
-  }, {
     key: 'section',
     get: function get() {
       return this._section;
     },
     set: function set(value) {
-      var previous = this._section;
-
       if (!value) {
         value = this.list.sectionById.overdue;
       }
 
       this._section = value;
-      this.el.dataset.sectionId = value.name;
-
-      if (!previous) {
-        return;
-      }
-
-      if (previous !== value) {
-        this.updateSection();
-        previous.reorderFromDOM();
-        value.reorderFromDOM();
-      } else {
-        value.reorderFromDOM();
-      }
-    }
-  }, {
-    key: 'content',
-    get: function get() {
-      return this._content;
-    },
-    set: function set(value) {
-      var previous = this._content;
-
-      this._content = value;
-
-      if (previous !== value) {
-        this.updateContent();
-      }
-    }
-  }], [{
-    key: 'create',
-    value: function create(section, opts) {
-      var ref = opts.section.list.app.db.push();
-
-      section.list.editing = ref.key;
-
-      ref.set({
-        group: opts.section.id,
-        content: '',
-        order: opts.order
-      });
-
-      return ref;
     }
   }]);
 

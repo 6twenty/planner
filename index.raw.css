@@ -401,6 +401,10 @@ main .item {
   z-index: 1;
 }
 
+main .item:not([contenteditable="true"]):empty {
+  display: none;
+}
+
 main .item code,
 main .item pre {
   color: cyan;

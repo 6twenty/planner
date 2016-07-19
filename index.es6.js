@@ -3,7 +3,6 @@ class App {
 
   constructor() {
     this.el = document.body
-    this.editing = false
     this._filtered = ''
 
     if (navigator.standalone) {
@@ -25,6 +24,7 @@ class App {
 
     App.canDrag = true
 
+    this.loop()
     this.hammer()
     this.build()
     this.observe()
@@ -58,6 +58,7 @@ class App {
 
     let isWithinCodeBlock = false
     const array = string.split('')
+
     string = array.map((char, i) => {
       const lastChar = array[i-1]
       const nextChar = array[i+1]
@@ -174,9 +175,10 @@ class App {
   }
 
   signIn(provider) {
+    const authProvider = new firebase.auth[provider]()
+
     this.modal.dataset.active = '#loading'
     sessionStorage.setItem('awaitingAuthRedirect', moment().format())
-    const authProvider = new firebase.auth[provider]()
     firebase.auth().signInWithRedirect(authProvider)
   }
 
@@ -220,12 +222,14 @@ class App {
 
       const ref = this.db.orderByChild('order')
 
-      ref.on('child_added', data => {
-        this.list.loadItem(data.key, data.val())
-
+      ref.limitToFirst(1).once('value', data => {
         if (this.modal.dataset.active === '#loading') {
           this.modal.dataset.active = ''
         }
+      })
+
+      ref.on('child_added', data => {
+        this.list.loadItem(data.key, data.val())
       })
 
       ref.on('child_changed', data => {
@@ -238,6 +242,39 @@ class App {
     } else {
       this.modal.dataset.active = '#providers'
     }
+  }
+
+  loop() {
+    requestAnimationFrame(timestamp => {
+      this.tick()
+    })
+  }
+
+  tick() {
+    if (this.db && Object.keys(this.list.updates).length > 0) {
+      const keys = Object.keys(this.list.updates)
+
+      keys.forEach(key => {
+        const item = this.list.items[key]
+        const attrs = this.list.updates[key]
+
+        if (!('group' in attrs)) attrs.group = item.section.id
+        if (!('content' in attrs)) attrs.content = item.content
+        if (!('order' in attrs)) attrs.order = item.order
+      })
+
+      this.db.update(this.list.updates)
+      this.list.updates = {}
+    }
+
+    this.list.sections.filter(section => {
+      return section.stale
+    }).forEach(section => {
+      section.stale = false
+      section.reorderToDOM()
+    })
+
+    this.loop()
   }
 
   build() {
@@ -275,11 +312,10 @@ class App {
 
   buildModalProviders() {
     const section = document.createElement('section')
-
-    section.dataset.id = 'providers'
-
     const a = document.createElement('a')
     const img = document.createElement('img')
+
+    section.dataset.id = 'providers'
     img.src = `/google.svg`
     a.classList.add('provider')
     a.appendChild(img)
@@ -302,6 +338,7 @@ class App {
     profile.classList.add('profile')
     signOut.innerText = 'Sign out'
     section.dataset.id = 'settings'
+
     section.appendChild(close)
     section.appendChild(profile)
     section.appendChild(signOut)
@@ -331,7 +368,7 @@ class App {
 
     // For regular keys, use `keypress` (provides the correct char code)
     window.addEventListener('keypress', e => {
-      if (this.editing) return
+      if (this.list.editing) return
       if (e.metaKey) return
       if (e.ctrlKey) return
       if (e.altKey) return
@@ -346,7 +383,7 @@ class App {
 
     // For special keys (esc and backspace), use `keydown`
     window.addEventListener('keydown', e => {
-      if (this.editing) return
+      if (this.list.editing) return
       if (e.metaKey) return
       if (e.ctrlKey) return
       if (e.altKey) return
@@ -419,6 +456,7 @@ class List {
     this.app = opts.app
     this.el = document.createElement('main')
     this.items = {}
+    this.updates = {}
   }
 
   build() {
@@ -493,7 +531,7 @@ class List {
 
         const item = this.items[el.dataset.key]
 
-        if (item.editing) {
+        if (item.el.contentEditable === 'true') {
           return false
         }
 
@@ -540,7 +578,12 @@ class List {
     this.drake.on('drop', (el, target, source, sibling) => {
       const item = this.items[el.dataset.key]
       const section = this.sectionById[target.parentElement.dataset.id]
-      item.section = section
+
+      section.reorderFromDOM()
+
+      if (section !== item.section) {
+        item.section.reorderFromDOM()
+      }
     })
 
     this.drake.on('cloned', (clone, original, type) => {
@@ -557,27 +600,31 @@ class List {
   loadItem(key, attrs) {
     const item = new Item({
       key: key,
-      section: this.sectionById[attrs.group],
+      list: this,
+      group: attrs.group,
       content: attrs.content,
       order: attrs.order
     })
 
     item.build()
-    item.section.reorderToDOM()
+    item.section.stale = true
   }
 
   updateItem(key, attrs) {
     const item = this.items[key]
+    const previousSection = item.section
 
-    item.update(attrs)
+    item.init(attrs)
+    item.rebuild()
+
+    item.section.stale = true
+    previousSection.stale = true
   }
 
   removeItem(key, attrs) {
     const item = this.items[key]
 
-    item.detach()
-
-    delete this.items[key]
+    item.remove()
   }
 
   unload() {
@@ -586,9 +633,7 @@ class List {
     keys.forEach(key => {
       const item = this.items[key]
 
-      item.detach()
-
-      delete this.items[key]
+      item.remove()
     })
   }
 
@@ -621,9 +666,12 @@ class Section {
     this.name = opts.name
     this.title = opts.name
     this.sectionId = opts.sectionId
+
     this.classes = new Set()
     this.classes.add(opts.name)
     this.classes.add(opts.sectionId)
+
+    this.stale = false
   }
 
   get items() {
@@ -647,18 +695,24 @@ class Section {
     const header = document.createElement('header')
     const back = document.createElement('button')
     const list = document.createElement('div')
+
     section.appendChild(header)
     section.appendChild(list)
 
     section.dataset.id = this.id
     section.dataset.name = this.name
     section.dataset.sectionId = this.sectionId
+
     this.classes.forEach(className => {
       section.classList.add(className)
     })
 
     const emoji = this.emoji()
-    if (emoji) header.dataset.emoji = emoji
+
+    if (emoji) {
+      header.dataset.emoji = emoji
+    }
+
     header.innerText = this.title
     back.classList.add('back')
     list.classList.add('list')
@@ -669,21 +723,31 @@ class Section {
     this.listEl = list
 
     this.el.addEventListener('doubletap', e => {
-      if (e.target !== this.listEl && e.target !== this.header) return
-
-      const first = e.target !== this.listEl
-      const opts = {}
-
-      opts.section = this
-
-      if (first) {
-        opts.order = 1
-        this.reorderFromIndex(2)
-      } else {
-        opts.order = this.items.length + 1
+      if (e.target !== this.listEl && e.target !== this.header) {
+        return
       }
 
-      Item.create(this, opts)
+      const first = e.target !== this.listEl
+      let order
+
+      if (first) {
+        order = 1
+        this.reorderFromIndex(2)
+      } else {
+        order = this.items.length + 1
+      }
+
+      const item = new Item({
+        list: this.list
+      })
+
+      this.list.editing = item.key
+
+      item.update({
+        group: this.id,
+        content: '',
+        order: order
+      })
     })
 
     header.addEventListener('singletap', e => {
@@ -723,7 +787,10 @@ class Section {
     const items = keys.map(key => { return this.list.items[key] })
 
     items.reduce((n, item) => {
-      item.order = n
+      item.update({
+        group: this.id,
+        order: n
+      })
 
       return ++n
     }, 1)
@@ -893,7 +960,7 @@ class DoneSection extends Section {
     Object.keys(this.list.items).forEach(key => {
       const item = this.list.items[key]
       if (item.section.id === this.id) {
-        item.remove()
+        item.delete()
       }
     })
   }
@@ -928,16 +995,29 @@ class BacklogSection extends Section {
 class Item {
 
   constructor(opts) {
-    this._section = opts.section
-    this._content = opts.content
-    this.list = this._section.list
-    this._order = opts.order
-    this.key = opts.key
+    this.list = opts.list
 
-    this._editing = this.list.editing === this.key
+    this.init(opts)
+
+    if (opts.key) {
+      this.key = opts.key
+    } else {
+      const ref = this.list.app.db.push()
+      this.key = ref.key
+    }
+
     this.list.items[this.key] = this
 
-    // Explicit bindings
+    this.bindings()
+  }
+
+  init(attrs) {
+    if ('group' in attrs) this.section = this.list.sectionById[attrs.group]
+    if ('content' in attrs) this.content = attrs.content
+    if ('order' in attrs) this.order = attrs.order
+  }
+
+  bindings() {
     this.onDblClick = this.onDblClick.bind(this)
     this.onKeydown = this.onKeydown.bind(this)
     this.onBlur = this.onBlur.bind(this)
@@ -948,90 +1028,16 @@ class Item {
     this.onMouseMove = this.onMouseMove.bind(this)
   }
 
-  static create(section, opts) {
-    const ref = opts.section.list.app.db.push()
-
-    section.list.editing = ref.key
-
-    ref.set({
-      group: opts.section.id,
-      content: '',
-      order: opts.order
-    })
-
-    return ref
-  }
-
-  get editing () {
-    return this._editing
-  }
-
-  set editing(value) {
-    this._editing = value
-    this.list.app.editing = value ? this.key : null
-  }
-
-  get order() {
-    return this._order
-  }
-
-  set order(value) {
-    const previous = this._order
-
-    this._order = value
-
-    if (previous !== value) {
-      this.updateOrder()
-    }
-  }
-
   get section () {
     return this._section
   }
 
   set section(value) {
-    const previous = this._section
-
     if (!value) {
       value = this.list.sectionById.overdue
     }
 
     this._section = value
-    this.el.dataset.sectionId = value.name
-
-    if (!previous) {
-      return
-    }
-
-    if (previous !== value) {
-      this.updateSection()
-      previous.reorderFromDOM()
-      value.reorderFromDOM()
-    } else {
-      value.reorderFromDOM()
-    }
-  }
-
-  get content() {
-    return this._content
-  }
-
-  set content(value) {
-    const previous = this._content
-
-    this._content = value
-
-    if (previous !== value) {
-      this.updateContent()
-    }
-  }
-
-  toJSON() {
-    return {
-      group: this.section.id,
-      content: this.content,
-      order: this.order
-    }
   }
 
   build() {
@@ -1047,54 +1053,36 @@ class Item {
 
     this.el = el
 
-    if (this.editing) {
+    if (this.list.editing === this.key) {
       this.startEditing()
     } else {
       this.awaitEditing()
     }
+  }
 
-    return this
+  rebuild() {
+    this.el.dataset.sectionType = this.section.name
+    this.el.innerHTML = App.markdown(this.content)
   }
 
   render() {
     this.section.listEl.appendChild(this.el)
 
-    if (this.editing) {
+    if (this.list.editing === this.key) {
       this.el.focus()
-    }
-  }
-
-  update(attrs) {
-    let section = this.list.sectionById[attrs.group]
-
-    if (this.content !== attrs.content) {
-      this._content = attrs.content
-      this.el.innerHTML = App.markdown(this._content)
-    }
-
-    if (this.order !== attrs.order) {
-      this._order = attrs.order
-      this.section.reorderToDOM()
-    }
-
-    if (this.section !== section) {
-      const prev = this.section
-      this.detach()
-      this._section = section
-      section.reorderToDOM()
     }
   }
 
   detach() {
     if (!this.el.parentElement) return
-    this.section.listEl.removeChild(this.el)
+
+    this.el.parentElement.removeChild(this.el)
   }
 
   remove() {
-    // this.detach()
-    // delete this.list.items[this.key]
-    // this.section.reorderFromDOM()
-    this.delete()
+    this.detach()
+
+    delete this.list.items[this.key]
   }
 
   show() {
@@ -1106,7 +1094,7 @@ class Item {
   }
 
   startEditing() {
-    this.editing = true
+    this.list.editing = this.key
     this.el.contentEditable = 'true'
     this.el.innerText = this.content
 
@@ -1127,20 +1115,20 @@ class Item {
   }
 
   finishEditing() {
-    this.editing = false
     this.el.contentEditable = 'false'
     this.el.removeEventListener('blur', this.onBlur)
     this.el.removeEventListener('paste', this.onPaste)
 
     const content = this.el.innerText
 
-    if (content.replace(/\s/g, '')) {
-      this.content = content
-    } else {
-      return this.remove()
+    if (content.replace(/\s/g, '') === '') {
+      return this.delete()
     }
 
     this.awaitEditing()
+    this.update({
+      content: content
+    })
   }
 
   cancelEditing() {
@@ -1157,32 +1145,27 @@ class Item {
     this.el.addEventListener('mousedown', this.onMouseMove)
   }
 
-  updateOrder() {
-    const ref = this.list.app.db.child(this.key)
-    ref.update({ order: this.order })
-  }
+  update(attrs) {
+    if (!attrs) {
+      attrs = {}
+    }
 
-  updateSection() {
-    const ref = this.list.app.db.child(this.key)
-    ref.update({ group: this.section.id })
-  }
-
-  updateContent() {
-    const ref = this.list.app.db.child(this.key)
-    ref.update({ content: this.content })
+    this.list.updates[this.key] = attrs
   }
 
   delete() {
     const ref = this.list.app.db.child(this.key)
+
     ref.remove()
   }
 
   focus() {
-    this.el.focus()
     const range = document.createRange()
+    const selection = window.getSelection()
+
+    this.el.focus()
     range.selectNodeContents(this.el)
     range.collapse(false)
-    const selection = window.getSelection()
     selection.removeAllRanges()
     selection.addRange(range)
   }
@@ -1194,7 +1177,7 @@ class Item {
   onKeydown(e) {
     if (e.which === 13 && !e.shiftKey) e.preventDefault()
 
-    if (this.editing) {
+    if (this.el.contentEditable === 'true') {
       if (e.which === 27) this.cancelEditing() // Esc
       if (e.which === 13 && !e.shiftKey) this.el.blur() // Enter
     } else {
