@@ -1116,6 +1116,7 @@ class Item {
   }
 
   finishEditing() {
+    this.list.editing = null
     this.el.contentEditable = 'false'
     this.el.removeEventListener('blur', this.onBlur)
     this.el.removeEventListener('paste', this.onPaste)
