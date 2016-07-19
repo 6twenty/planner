@@ -1094,6 +1094,7 @@ class Item {
   }
 
   startEditing() {
+    this._html = this.el.innerHTML
     this.list.editing = this.key
     this.el.contentEditable = 'true'
     this.el.innerText = this.content
@@ -1121,11 +1122,15 @@ class Item {
 
     const content = this.el.innerText
 
+    this.el.innerHTML = this._html
+    delete this._html
+
     if (content.replace(/\s/g, '') === '') {
       return this.delete()
     }
 
     this.awaitEditing()
+
     this.update({
       content: content
     })
