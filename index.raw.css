@@ -528,7 +528,7 @@ main .item.gu-mirror[data-section-type="done"] {
 
   main section {
     position: static;
-    height: auto;
+    height: 12.5%;
     width: 50%;
     flex: 1 0 auto;
     display: flex;
