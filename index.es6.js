@@ -1015,7 +1015,7 @@ class Item {
   }
 
   bindings() {
-    this.onDblClick = this.onDblClick.bind(this)
+    this.onDoubleTap = this.onDoubleTap.bind(this)
     this.onKeydown = this.onKeydown.bind(this)
     this.onBlur = this.onBlur.bind(this)
     this.onPaste = this.onPaste.bind(this)
@@ -1102,7 +1102,7 @@ class Item {
       this.el.focus()
     }
 
-    this.el.removeEventListener('doubletap', this.onDblClick)
+    this.el.removeEventListener('doubletap', this.onDoubleTap)
     this.el.removeEventListener('touchstart', this.onTouchStart)
     this.el.removeEventListener('touchmove', this.onTouchMove)
     this.el.removeEventListener('touchend', this.onTouchEnd)
@@ -1140,7 +1140,7 @@ class Item {
   }
 
   awaitEditing() {
-    this.el.addEventListener('doubletap', this.onDblClick)
+    this.el.addEventListener('doubletap', this.onDoubleTap)
     this.el.addEventListener('touchstart', this.onTouchStart)
     this.el.addEventListener('touchmove', this.onTouchMove)
     this.el.addEventListener('touchend', this.onTouchEnd)
@@ -1173,7 +1173,7 @@ class Item {
     selection.addRange(range)
   }
 
-  onDblClick(e) {
+  onDoubleTap(e) {
     this.startEditing()
   }
 
