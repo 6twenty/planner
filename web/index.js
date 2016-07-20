@@ -456,7 +456,7 @@ var App = function () {
     key: 'markdown',
     value: function markdown(string) {
       string = string.replace(/(^|\s)(#(\w+))\b/g, function (match, initial, hashtag) {
-        var hsl = App.hsl(hashtag.replace('#', ''));
+        var hsl = App.hsl(hashtag.toLowerCase().replace('#', ''));
         var color = 'hsl(' + hsl[0] + ', ' + hsl[1] * 100 + '%, ' + hsl[2] * 100 + '%)';
         return initial + '<span style="color:' + color + '">' + hashtag + '</span>';
       });

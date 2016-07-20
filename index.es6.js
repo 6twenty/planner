@@ -51,7 +51,7 @@ class App {
 
   static markdown(string) {
     string = string.replace(/(^|\s)(#(\w+))\b/g, (match, initial, hashtag) => {
-      const hsl = App.hsl(hashtag.replace('#', ''))
+      const hsl = App.hsl(hashtag.toLowerCase().replace('#', ''))
       const color = `hsl(${hsl[0]}, ${hsl[1]*100}%, ${hsl[2]*100}%)`
       return `${initial}<span style="color:${color}">${hashtag}</span>`
     })
