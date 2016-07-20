@@ -1196,6 +1196,7 @@ var Item = function () {
   }, {
     key: 'bindings',
     value: function bindings() {
+      this.onSingleTap = this.onSingleTap.bind(this);
       this.onDoubleTap = this.onDoubleTap.bind(this);
       this.onKeydown = this.onKeydown.bind(this);
       this.onBlur = this.onBlur.bind(this);
@@ -1279,6 +1280,7 @@ var Item = function () {
         this.el.focus();
       }
 
+      this.el.removeEventListener('singletap', this.onSingleTap);
       this.el.removeEventListener('doubletap', this.onDoubleTap);
       this.el.removeEventListener('touchstart', this.onTouchStart);
       this.el.removeEventListener('touchmove', this.onTouchMove);
@@ -1320,6 +1322,7 @@ var Item = function () {
   }, {
     key: 'awaitEditing',
     value: function awaitEditing() {
+      this.el.addEventListener('singletap', this.onSingleTap);
       this.el.addEventListener('doubletap', this.onDoubleTap);
       this.el.addEventListener('touchstart', this.onTouchStart);
       this.el.addEventListener('touchmove', this.onTouchMove);
@@ -1354,6 +1357,15 @@ var Item = function () {
       range.collapse(false);
       selection.removeAllRanges();
       selection.addRange(range);
+    }
+  }, {
+    key: 'onSingleTap',
+    value: function onSingleTap(e) {
+      if (document.activeElement === this.el) {
+        this.el.blur();
+      } else {
+        this.el.focus();
+      }
     }
   }, {
     key: 'onDoubleTap',
