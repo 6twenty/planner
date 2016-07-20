@@ -794,10 +794,14 @@ class Section {
   }
 
   reorderToDOM() {
+    const scrollTop = this.listEl.scrollTop
+
     this.items.forEach(item => {
       item.detach()
       item.render()
     })
+
+    this.listEl.scrollTop = scrollTop
   }
 
 }
@@ -1068,6 +1072,9 @@ class Item {
 
     if (this.list.editing === this.key) {
       this.el.focus()
+      setTimeout(() => {
+        this.el.scrollIntoView()
+      }, 0)
     }
   }
 

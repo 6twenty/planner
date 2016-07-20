@@ -895,10 +895,14 @@ var Section = function () {
   }, {
     key: 'reorderToDOM',
     value: function reorderToDOM() {
+      var scrollTop = this.listEl.scrollTop;
+
       this.items.forEach(function (item) {
         item.detach();
         item.render();
       });
+
+      this.listEl.scrollTop = scrollTop;
     }
   }, {
     key: 'items',
@@ -1236,10 +1240,15 @@ var Item = function () {
   }, {
     key: 'render',
     value: function render() {
+      var _this24 = this;
+
       this.section.listEl.appendChild(this.el);
 
       if (this.list.editing === this.key) {
         this.el.focus();
+        setTimeout(function () {
+          _this24.el.scrollIntoView();
+        }, 0);
       }
     }
   }, {
@@ -1407,16 +1416,16 @@ var Item = function () {
   }, {
     key: 'onTouchStart',
     value: function onTouchStart(e) {
-      var _this24 = this;
+      var _this25 = this;
 
       if ('_allowDrag' in this) return;
 
       App.canDrag = false;
 
       this._timer = setTimeout(function () {
-        _this24._allowDrag = App.canDrag = true;
-        _this24.el.dispatchEvent(e);
-        delete _this24._allowDrag;
+        _this25._allowDrag = App.canDrag = true;
+        _this25.el.dispatchEvent(e);
+        delete _this25._allowDrag;
       }, 500);
     }
   }, {
