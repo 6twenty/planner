@@ -629,6 +629,7 @@ var List = function () {
         accepts: function accepts(el, target, source, sibling) {
           var section = _this9.sectionById[target.parentElement.dataset.id];
           var active = section.list.el.querySelector('section.over');
+          var mirror = _this9.el.querySelector('.item.gu-mirror');
 
           if (active) {
             active.classList.remove('over');
@@ -636,6 +637,7 @@ var List = function () {
 
           section.el.classList.add('over');
           _this9.el.dataset.active = '#' + section.sectionId;
+          mirror.dataset.sectionType = target.parentElement.dataset.name;
 
           if (target.nodeName === 'HEADER') {
             if (target.parentElement === el.parentElement.parentElement) {
@@ -678,11 +680,6 @@ var List = function () {
       this.drake.on('cloned', function (clone, original, type) {
         var color = getComputedStyle(original).backgroundColor;
         clone.style.boxShadow = 'inset 0 0 0 50vw ' + color;
-      });
-
-      this.drake.on('shadow', function (el, container, source) {
-        var mirror = _this9.el.querySelector('.item.gu-mirror');
-        mirror.dataset.sectionType = container.parentElement.dataset.name;
       });
     })
   }, {

@@ -540,6 +540,7 @@ class List {
       accepts: (el, target, source, sibling) => {
         const section = this.sectionById[target.parentElement.dataset.id]
         const active = section.list.el.querySelector('section.over')
+        const mirror = this.el.querySelector('.item.gu-mirror')
 
         if (active) {
           active.classList.remove('over')
@@ -547,6 +548,7 @@ class List {
 
         section.el.classList.add('over')
         this.el.dataset.active = `#${section.sectionId}`
+        mirror.dataset.sectionType = target.parentElement.dataset.name
 
         if (target.nodeName === 'HEADER') {
           if (target.parentElement === el.parentElement.parentElement) {
@@ -589,11 +591,6 @@ class List {
     this.drake.on('cloned', (clone, original, type) => {
       const color = getComputedStyle(original).backgroundColor
       clone.style.boxShadow = `inset 0 0 0 50vw ${color}`
-    })
-
-    this.drake.on('shadow', (el, container, source) => {
-      const mirror = this.el.querySelector('.item.gu-mirror')
-      mirror.dataset.sectionType = container.parentElement.dataset.name
     })
   }
 
