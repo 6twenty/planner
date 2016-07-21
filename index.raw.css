@@ -1,3 +1,13 @@
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 html,
 body {
   margin: 0;
@@ -309,15 +319,46 @@ main section .settings {
   height: 3rem;
   width: 3rem;
   line-height: 3rem;
+  padding: .2rem;
+  border-radius: 50%;
+}
+
+main section .settings::before {
+  position: absolute;
+  content: '';
+  display: block;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: auto;
+  width: auto;
+  border-radius: 50%;
+  z-index: 0;
+  border: solid .4rem white;
+}
+
+main[data-syncing] section .settings::before {
+  border-color: transparent;
+  border-top-color: white;
+  border-right-color: white;
+  animation: spin .75s infinite linear;
+}
+
+main section .settings > * {
+  height: 100%;
+  width: 100%;
+  line-height: inherit;
   background-size: cover;
   background-position: center;
   background-color: rgba(0,0,0,.5);
-  border: solid .2rem white;
-  border-radius: 50%;
   overflow: hidden;
+  border-radius: 50%;
+  position: relative;
+  z-index: 1;
 }
 
-main section .settings[style] {
+main section .settings > *[style] {
   color: transparent;
   text-indent: 3rem;
   background-color: white;

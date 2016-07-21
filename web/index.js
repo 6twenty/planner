@@ -108,7 +108,7 @@ var App = function () {
       firebase.auth().signOut();
       this.list.unload();
 
-      var settings = this.el.querySelector('.settings');
+      var settings = this.el.querySelector('.settings').firstChild;
       var profile = this.el.querySelector('.profile');
 
       settings.innerText = '';
@@ -132,7 +132,7 @@ var App = function () {
       var user = firebase.auth().currentUser;
 
       if (user) {
-        var settings = this.el.querySelector('.settings');
+        var settings = this.el.querySelector('.settings').firstChild;
         var profile = this.el.querySelector('.profile');
         var letter = user.displayName ? user.displayName[0] : '?';
 
@@ -1009,10 +1009,13 @@ var DaySection = function (_Section) {
 
       if (this.date.isSame(today)) {
         var settings = document.createElement('a');
+        var div = document.createElement('div');
 
+        settings.appendChild(div);
         settings.classList.add('settings');
 
         settings.addEventListener('singletap', function (e) {
+          e.preventDefault();
           e.stopPropagation();
 
           _this16.list.app.modal.dataset.active = '#settings';

@@ -186,7 +186,7 @@ class App {
     firebase.auth().signOut()
     this.list.unload()
 
-    const settings = this.el.querySelector('.settings')
+    const settings = this.el.querySelector('.settings').firstChild
     const profile = this.el.querySelector('.profile')
 
     settings.innerText = ''
@@ -206,7 +206,7 @@ class App {
     const user = firebase.auth().currentUser
 
     if (user) {
-      const settings = this.el.querySelector('.settings')
+      const settings = this.el.querySelector('.settings').firstChild
       const profile = this.el.querySelector('.profile')
       const letter = user.displayName ? user.displayName[0] : '?'
 
@@ -878,10 +878,13 @@ class DaySection extends Section {
 
     if (this.date.isSame(today)) {
       const settings = document.createElement('a')
+      const div = document.createElement('div')
 
+      settings.appendChild(div)
       settings.classList.add('settings')
 
       settings.addEventListener('singletap', e => {
+        e.preventDefault()
         e.stopPropagation()
 
         this.list.app.modal.dataset.active = '#settings'
