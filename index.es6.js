@@ -322,6 +322,8 @@ class App {
     section.appendChild(a)
 
     a.addEventListener('singletap', e => {
+      e.stopPropagation()
+
       this.signIn('GoogleAuthProvider')
     })
 
@@ -344,10 +346,14 @@ class App {
     section.appendChild(signOut)
 
     close.addEventListener('singletap', e => {
+      e.stopPropagation()
+
       this.list.app.modal.dataset.active = ''
     })
 
     signOut.addEventListener('singletap', e => {
+      e.stopPropagation()
+
       this.signOut()
     })
 
@@ -374,6 +380,8 @@ class App {
       if (e.altKey) return
       if (e.which === 13) return
 
+      e.stopPropagation()
+
       const char = String.fromCharCode(e.which)
 
       if (!char) return
@@ -391,6 +399,7 @@ class App {
 
       if (e.which === 27) { // Esc
         e.preventDefault()
+        e.stopPropagation()
 
         if (this.modal.dataset.active === '#settings') {
           this.modal.dataset.active = ''
@@ -411,6 +420,8 @@ class App {
 
       if (e.which === 8) { // Backspace
         e.preventDefault()
+        e.stopPropagation()
+
         this.filtered = this.filtered.slice(0, this.filtered.length - 1)
       }
     })
@@ -724,6 +735,8 @@ class Section {
         return
       }
 
+      e.stopPropagation()
+
       const first = e.target !== this.listEl
       let order
 
@@ -750,11 +763,15 @@ class Section {
     header.addEventListener('singletap', e => {
       if (e.target !== header) return
 
+      e.stopPropagation()
+
       this.list.el.dataset.active = `#${this.sectionId}`
     })
 
     back.addEventListener('singletap', e => {
       if (e.target !== back) return
+
+      e.stopPropagation()
 
       this.list.el.dataset.active = ''
     })
@@ -865,6 +882,8 @@ class DaySection extends Section {
       settings.classList.add('settings')
 
       settings.addEventListener('singletap', e => {
+        e.stopPropagation()
+
         this.list.app.modal.dataset.active = '#settings'
       })
 
@@ -951,6 +970,8 @@ class DoneSection extends Section {
     this.el.appendChild(button)
 
     button.addEventListener('singletap', e => {
+      e.stopPropagation()
+
       this.clear()
     })
 
@@ -1184,6 +1205,8 @@ class Item {
   }
 
   onSingleTap(e) {
+    e.stopPropagation()
+
     if (document.activeElement === this.el) {
       this.el.blur()
     } else {
@@ -1192,11 +1215,17 @@ class Item {
   }
 
   onDoubleTap(e) {
+    e.stopPropagation()
+
     this.startEditing()
   }
 
   onKeydown(e) {
-    if (e.which === 13 && !e.shiftKey) e.preventDefault()
+    if (e.which === 13 && !e.shiftKey) {
+      e.preventDefault()
+    }
+
+    e.stopPropagation()
 
     if (this.el.contentEditable === 'true') {
       if (e.which === 27) this.cancelEditing() // Esc
@@ -1211,8 +1240,8 @@ class Item {
   }
 
   onPaste(e) {
-    e.stopPropagation()
     e.preventDefault()
+    e.stopPropagation()
 
     const clipboardData = e.clipboardData || window.clipboardData
     const pastedData = clipboardData.getData('Text')

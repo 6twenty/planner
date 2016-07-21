@@ -261,6 +261,8 @@ var App = function () {
       section.appendChild(a);
 
       a.addEventListener('singletap', function (e) {
+        e.stopPropagation();
+
         _this4.signIn('GoogleAuthProvider');
       });
 
@@ -286,10 +288,14 @@ var App = function () {
       section.appendChild(signOut);
 
       close.addEventListener('singletap', function (e) {
+        e.stopPropagation();
+
         _this5.list.app.modal.dataset.active = '';
       });
 
       signOut.addEventListener('singletap', function (e) {
+        e.stopPropagation();
+
         _this5.signOut();
       });
 
@@ -319,6 +325,8 @@ var App = function () {
         if (e.altKey) return;
         if (e.which === 13) return;
 
+        e.stopPropagation();
+
         var char = String.fromCharCode(e.which);
 
         if (!char) return;
@@ -337,6 +345,7 @@ var App = function () {
         if (e.which === 27) {
           // Esc
           e.preventDefault();
+          e.stopPropagation();
 
           if (_this6.modal.dataset.active === '#settings') {
             _this6.modal.dataset.active = '';
@@ -358,6 +367,8 @@ var App = function () {
         if (e.which === 8) {
           // Backspace
           e.preventDefault();
+          e.stopPropagation();
+
           _this6.filtered = _this6.filtered.slice(0, _this6.filtered.length - 1);
         }
       });
@@ -816,6 +827,8 @@ var Section = function () {
           return;
         }
 
+        e.stopPropagation();
+
         var first = e.target !== _this12.listEl;
         var order = void 0;
 
@@ -842,11 +855,15 @@ var Section = function () {
       header.addEventListener('singletap', function (e) {
         if (e.target !== header) return;
 
+        e.stopPropagation();
+
         _this12.list.el.dataset.active = '#' + _this12.sectionId;
       });
 
       back.addEventListener('singletap', function (e) {
         if (e.target !== back) return;
+
+        e.stopPropagation();
 
         _this12.list.el.dataset.active = '';
       });
@@ -996,6 +1013,8 @@ var DaySection = function (_Section) {
         settings.classList.add('settings');
 
         settings.addEventListener('singletap', function (e) {
+          e.stopPropagation();
+
           _this16.list.app.modal.dataset.active = '#settings';
         });
 
@@ -1110,6 +1129,8 @@ var DoneSection = function (_Section4) {
       this.el.appendChild(button);
 
       button.addEventListener('singletap', function (e) {
+        e.stopPropagation();
+
         _this20.clear();
       });
 
@@ -1370,6 +1391,8 @@ var Item = function () {
   }, {
     key: 'onSingleTap',
     value: function onSingleTap(e) {
+      e.stopPropagation();
+
       if (document.activeElement === this.el) {
         this.el.blur();
       } else {
@@ -1379,12 +1402,18 @@ var Item = function () {
   }, {
     key: 'onDoubleTap',
     value: function onDoubleTap(e) {
+      e.stopPropagation();
+
       this.startEditing();
     }
   }, {
     key: 'onKeydown',
     value: function onKeydown(e) {
-      if (e.which === 13 && !e.shiftKey) e.preventDefault();
+      if (e.which === 13 && !e.shiftKey) {
+        e.preventDefault();
+      }
+
+      e.stopPropagation();
 
       if (this.el.contentEditable === 'true') {
         if (e.which === 27) this.cancelEditing(); // Esc
@@ -1401,8 +1430,8 @@ var Item = function () {
   }, {
     key: 'onPaste',
     value: function onPaste(e) {
-      e.stopPropagation();
       e.preventDefault();
+      e.stopPropagation();
 
       var clipboardData = e.clipboardData || window.clipboardData;
       var pastedData = clipboardData.getData('Text');
