@@ -749,7 +749,13 @@ var List = function () {
     value: function filter() {
       var _this11 = this;
 
-      var regex = new RegExp(App.escapeRegex(this.app.filtered), 'i');
+      var words = this.app.filtered.split(' ').map(function (word) {
+        return App.escapeRegex(word);
+      });
+      var matchers = words.map(function (word) {
+        return '(?=.*?' + word + ')';
+      });
+      var regex = new RegExp(matchers.join(''), 'i');
 
       Object.keys(this.items).forEach(function (key) {
         var item = _this11.items[key];

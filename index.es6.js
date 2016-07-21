@@ -650,7 +650,9 @@ class List {
   }
 
   filter() {
-    const regex = new RegExp(App.escapeRegex(this.app.filtered), 'i')
+    const words = this.app.filtered.split(' ').map(word => { return App.escapeRegex(word) })
+    const matchers = words.map(word => { return `(?=.*?${word})` })
+    const regex = new RegExp(matchers.join(''), 'i')
 
     Object.keys(this.items).forEach(key => {
       const item = this.items[key]
