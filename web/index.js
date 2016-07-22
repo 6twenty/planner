@@ -41,7 +41,6 @@ var App = function () {
     };
 
     App.canDrag = true;
-    App.isConnected = false;
 
     this.loop();
     this.hammer();
@@ -88,6 +87,7 @@ var App = function () {
       var profile = this.el.querySelector('.profile');
       var letter = user.displayName ? user.displayName[0] : '?';
 
+      firebase.database().goOffline();
       this.db = firebase.database().ref('users/' + user.uid + '/items');
 
       settings.innerText = letter;
@@ -196,7 +196,6 @@ var App = function () {
 
       this.clearCache();
 
-      this.isConnected = true;
       this.list.el.removeAttribute('data-syncing');
       sessionStorage.setItem('app:user', json);
 
@@ -214,6 +213,7 @@ var App = function () {
             profile.style.backgroundImage = 'url(' + user.photoURL + ')';
           }
 
+          firebase.database().goOnline();
           _this2.db = firebase.database().ref('users/' + user.uid + '/items');
 
           var ref = _this2.db.orderByChild('order');
@@ -285,12 +285,18 @@ var App = function () {
     value: function tick() {
       var _this4 = this;
 
-      if (this.isConnected && Object.keys(this.list.updates).length > 0) {
-        var keys = Object.keys(this.list.updates);
+      var keys = Object.keys(this.list.updates);
 
+      if (this.db && keys.length > 0) {
         keys.forEach(function (key) {
           var item = _this4.list.items[key];
           var attrs = _this4.list.updates[key];
+
+          if (!item) {
+            console.warn('Item no longer exists: %s', key);
+            delete _this4.list.updates[key];
+            return;
+          }
 
           if (!('group' in attrs)) attrs.group = item.section.id;
           if (!('content' in attrs)) attrs.content = item.content;
@@ -1448,20 +1454,21 @@ var Item = function () {
 
       var content = this.el.innerText;
 
-      this.el.innerHTML = this._html;
-      delete this._html;
-
       if (content.replace(/\s/g, '') === '') {
         return this.delete();
       }
 
-      this.awaitEditing();
+      this.el.innerHTML = App.markdown(content);
 
       if (this.content !== content) {
+        this.content = content;
+
         this.update({
           content: content
         });
       }
+
+      this.awaitEditing();
     }
   }, {
     key: 'cancelEditing',

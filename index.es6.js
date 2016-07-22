@@ -23,7 +23,6 @@ class App {
     }
 
     App.canDrag = true
-    App.isConnected = false
 
     this.loop()
     this.hammer()
@@ -175,6 +174,7 @@ class App {
     const profile = this.el.querySelector('.profile')
     const letter = user.displayName ? user.displayName[0] : '?'
 
+    firebase.database().goOffline()
     this.db = firebase.database().ref(`users/${user.uid}/items`)
 
     settings.innerText = letter
@@ -267,7 +267,6 @@ class App {
 
     this.clearCache()
 
-    this.isConnected = true
     this.list.el.removeAttribute('data-syncing')
     sessionStorage.setItem('app:user', json)
 
@@ -284,6 +283,7 @@ class App {
         profile.style.backgroundImage = `url(${user.photoURL})`
       }
 
+      firebase.database().goOnline()
       this.db = firebase.database().ref(`users/${user.uid}/items`)
 
       const ref = this.db.orderByChild('order')
@@ -345,12 +345,18 @@ class App {
   }
 
   tick() {
-    if (this.isConnected && Object.keys(this.list.updates).length > 0) {
-      const keys = Object.keys(this.list.updates)
+    const keys = Object.keys(this.list.updates)
 
+    if (this.db && keys.length > 0) {
       keys.forEach(key => {
         const item = this.list.items[key]
         const attrs = this.list.updates[key]
+
+        if (!item) {
+          console.warn('Item no longer exists: %s', key)
+          delete this.list.updates[key]
+          return
+        }
 
         if (!('group' in attrs)) attrs.group = item.section.id
         if (!('content' in attrs)) attrs.content = item.content
@@ -1256,20 +1262,21 @@ class Item {
 
     const content = this.el.innerText
 
-    this.el.innerHTML = this._html
-    delete this._html
-
     if (content.replace(/\s/g, '') === '') {
       return this.delete()
     }
 
-    this.awaitEditing()
+    this.el.innerHTML = App.markdown(content)
 
     if (this.content !== content) {
+      this.content = content
+
       this.update({
         content: content
       })
     }
+
+    this.awaitEditing()
   }
 
   cancelEditing() {
