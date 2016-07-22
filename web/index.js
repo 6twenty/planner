@@ -499,11 +499,11 @@ var App = function () {
           orders[section.id] = 0;
         }
 
-        var ref = _this8.list.app.db.push();
+        var ref = _this8.db.push();
 
         items[ref.key] = {
           group: section.id,
-          content: '',
+          content: item.content,
           order: ++orders[section.id]
         };
 

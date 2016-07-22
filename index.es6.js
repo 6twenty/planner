@@ -544,11 +544,11 @@ class App {
         orders[section.id] = 0
       }
 
-      const ref = this.list.app.db.push()
+      const ref = this.db.push()
 
       items[ref.key] = {
         group: section.id,
-        content: '',
+        content: item.content,
         order: ++orders[section.id]
       }
 
