@@ -155,7 +155,7 @@ class App {
   }
 
   bootstrap() {
-    const json = sessionStorage.getItem('app:user')
+    const json = localStorage.getItem('app:user')
 
     if (!json) {
       this.loading()
@@ -188,11 +188,11 @@ class App {
       profile.style.backgroundImage = `url(${user.photoURL})`
     }
 
-    let i = sessionStorage.length
+    let i = localStorage.length
 
     while (i--) {
-      const key = sessionStorage.key(i)
-      const value = sessionStorage.getItem(key)
+      const key = localStorage.key(i)
+      const value = localStorage.getItem(key)
 
       if (/^app:item:/.test(key)) {
         const realKey = key.replace(/^app:item:/, '')
@@ -259,23 +259,23 @@ class App {
 
   init() {
     const user = firebase.auth().currentUser
-    const json = JSON.stringify({
-      date: moment().format(),
-      user: {
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        uid: user.uid
-      }
-    })
 
     this.clearCache()
-
-    sessionStorage.setItem('app:user', json)
 
     if (user) {
       const settings = this.el.querySelector('.settings').firstChild
       const profile = this.el.querySelector('.profile')
       const letter = user.displayName ? user.displayName[0] : '?'
+      const json = JSON.stringify({
+        date: moment().format(),
+        user: {
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          uid: user.uid
+        }
+      })
+
+      localStorage.setItem('app:user', json)
 
       settings.innerText = letter
       profile.innerText = letter
@@ -315,16 +315,16 @@ class App {
   }
 
   clearCache() {
-    sessionStorage.removeItem('app:user')
+    localStorage.removeItem('app:user')
 
-    let i = sessionStorage.length
+    let i = localStorage.length
 
     while (i--) {
-      const key = sessionStorage.key(i)
-      const value = sessionStorage.getItem(key)
+      const key = localStorage.key(i)
+      const value = localStorage.getItem(key)
 
       if (/^app:item:/.test(key)) {
-        sessionStorage.removeItem(key)
+        localStorage.removeItem(key)
       }
     }
   }
@@ -333,11 +333,11 @@ class App {
     const attrs = item.attrs()
     const json = JSON.stringify(attrs)
 
-    sessionStorage.setItem(`app:item:${item.key}`, json)
+    localStorage.setItem(`app:item:${item.key}`, json)
   }
 
   uncacheItem(item) {
-    sessionStorage.removeItem(`app:item:${item.key}`)
+    localStorage.removeItem(`app:item:${item.key}`)
   }
 
   loop() {
@@ -743,11 +743,14 @@ class List {
     this.app.cacheItem(item)
 
     if (item.section !== prev.section) {
+      item.cancelEditing()
       item.section.stale = true
       prev.section.stale = true
     } else if (item.order !== prev.order) {
+      item.cancelEditing()
       item.section.stale = true
     } else if (item.content !== prev.content) {
+      item.cancelEditing()
       item.el.innerHTML = App.markdown(item.content)
     }
   }

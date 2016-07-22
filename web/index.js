@@ -68,7 +68,7 @@ var App = function () {
   _createClass(App, [{
     key: 'bootstrap',
     value: function bootstrap() {
-      var json = sessionStorage.getItem('app:user');
+      var json = localStorage.getItem('app:user');
 
       if (!json) {
         this.loading();
@@ -101,11 +101,11 @@ var App = function () {
         profile.style.backgroundImage = 'url(' + user.photoURL + ')';
       }
 
-      var i = sessionStorage.length;
+      var i = localStorage.length;
 
       while (i--) {
-        var key = sessionStorage.key(i);
-        var value = sessionStorage.getItem(key);
+        var key = localStorage.key(i);
+        var value = localStorage.getItem(key);
 
         if (/^app:item:/.test(key)) {
           var realKey = key.replace(/^app:item:/, '');
@@ -188,23 +188,23 @@ var App = function () {
       var _this2 = this;
 
       var user = firebase.auth().currentUser;
-      var json = JSON.stringify({
-        date: moment().format(),
-        user: {
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          uid: user.uid
-        }
-      });
 
       this.clearCache();
-
-      sessionStorage.setItem('app:user', json);
 
       if (user) {
         var settings = this.el.querySelector('.settings').firstChild;
         var profile = this.el.querySelector('.profile');
         var letter = user.displayName ? user.displayName[0] : '?';
+        var json = JSON.stringify({
+          date: moment().format(),
+          user: {
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            uid: user.uid
+          }
+        });
+
+        localStorage.setItem('app:user', json);
 
         settings.innerText = letter;
         profile.innerText = letter;
@@ -245,16 +245,16 @@ var App = function () {
   }, {
     key: 'clearCache',
     value: function clearCache() {
-      sessionStorage.removeItem('app:user');
+      localStorage.removeItem('app:user');
 
-      var i = sessionStorage.length;
+      var i = localStorage.length;
 
       while (i--) {
-        var key = sessionStorage.key(i);
-        var value = sessionStorage.getItem(key);
+        var key = localStorage.key(i);
+        var value = localStorage.getItem(key);
 
         if (/^app:item:/.test(key)) {
-          sessionStorage.removeItem(key);
+          localStorage.removeItem(key);
         }
       }
     }
@@ -264,12 +264,12 @@ var App = function () {
       var attrs = item.attrs();
       var json = JSON.stringify(attrs);
 
-      sessionStorage.setItem('app:item:' + item.key, json);
+      localStorage.setItem('app:item:' + item.key, json);
     }
   }, {
     key: 'uncacheItem',
     value: function uncacheItem(item) {
-      sessionStorage.removeItem('app:item:' + item.key);
+      localStorage.removeItem('app:item:' + item.key);
     }
   }, {
     key: 'loop',
@@ -840,11 +840,14 @@ var List = function () {
       this.app.cacheItem(item);
 
       if (item.section !== prev.section) {
+        item.cancelEditing();
         item.section.stale = true;
         prev.section.stale = true;
       } else if (item.order !== prev.order) {
+        item.cancelEditing();
         item.section.stale = true;
       } else if (item.content !== prev.content) {
+        item.cancelEditing();
         item.el.innerHTML = App.markdown(item.content);
       }
     }
