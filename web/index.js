@@ -196,48 +196,45 @@ var App = function () {
 
       this.clearCache();
 
-      this.list.el.removeAttribute('data-syncing');
       sessionStorage.setItem('app:user', json);
 
       if (user) {
-        (function () {
-          var settings = _this2.el.querySelector('.settings').firstChild;
-          var profile = _this2.el.querySelector('.profile');
-          var letter = user.displayName ? user.displayName[0] : '?';
+        var settings = this.el.querySelector('.settings').firstChild;
+        var profile = this.el.querySelector('.profile');
+        var letter = user.displayName ? user.displayName[0] : '?';
 
-          settings.innerText = letter;
-          profile.innerText = letter;
+        settings.innerText = letter;
+        profile.innerText = letter;
 
-          if (user.photoURL) {
-            settings.style.backgroundImage = 'url(' + user.photoURL + ')';
-            profile.style.backgroundImage = 'url(' + user.photoURL + ')';
+        if (user.photoURL) {
+          settings.style.backgroundImage = 'url(' + user.photoURL + ')';
+          profile.style.backgroundImage = 'url(' + user.photoURL + ')';
+        }
+
+        firebase.database().goOnline();
+        this.db = firebase.database().ref('users/' + user.uid + '/items');
+
+        var ref = this.db.orderByChild('order');
+
+        ref.limitToFirst(1).on('value', function (data) {
+          _this2.list.el.removeAttribute('data-syncing');
+
+          if (_this2.modal.dataset.active === '#loading') {
+            _this2.modal.dataset.active = '';
           }
+        });
 
-          firebase.database().goOnline();
-          _this2.db = firebase.database().ref('users/' + user.uid + '/items');
+        ref.on('child_added', function (data) {
+          _this2.list.loadItem(data.key, data.val());
+        });
 
-          var ref = _this2.db.orderByChild('order');
+        ref.on('child_changed', function (data) {
+          _this2.list.updateItem(data.key, data.val());
+        });
 
-          ref.limitToFirst(1).once('value', function (data) {
-            if (_this2.modal.dataset.active === '#loading') {
-              _this2.modal.dataset.active = '';
-            }
-
-            _this2.list.unload();
-
-            ref.on('child_added', function (data) {
-              _this2.list.loadItem(data.key, data.val());
-            });
-
-            ref.on('child_changed', function (data) {
-              _this2.list.updateItem(data.key, data.val());
-            });
-
-            ref.on('child_removed', function (data) {
-              _this2.list.removeItem(data.key, data.val());
-            });
-          });
-        })();
+        ref.on('child_removed', function (data) {
+          _this2.list.removeItem(data.key, data.val());
+        });
       } else {
         this.signOut();
       }
@@ -1035,8 +1032,11 @@ var Section = function () {
     value: function reorderToDOM() {
       var scrollTop = this.listEl.scrollTop;
 
+      while (this.listEl.firstChild) {
+        this.listEl.removeChild(this.listEl.firstChild);
+      }
+
       this.items.forEach(function (item) {
-        item.detach();
         item.render();
       });
 

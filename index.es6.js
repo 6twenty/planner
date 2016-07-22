@@ -267,7 +267,6 @@ class App {
 
     this.clearCache()
 
-    this.list.el.removeAttribute('data-syncing')
     sessionStorage.setItem('app:user', json)
 
     if (user) {
@@ -288,24 +287,24 @@ class App {
 
       const ref = this.db.orderByChild('order')
 
-      ref.limitToFirst(1).once('value', data => {
+      ref.limitToFirst(1).on('value', data => {
+        this.list.el.removeAttribute('data-syncing')
+
         if (this.modal.dataset.active === '#loading') {
           this.modal.dataset.active = ''
         }
+      })
 
-        this.list.unload()
+      ref.on('child_added', data => {
+        this.list.loadItem(data.key, data.val())
+      })
 
-        ref.on('child_added', data => {
-          this.list.loadItem(data.key, data.val())
-        })
+      ref.on('child_changed', data => {
+        this.list.updateItem(data.key, data.val())
+      })
 
-        ref.on('child_changed', data => {
-          this.list.updateItem(data.key, data.val())
-        })
-
-        ref.on('child_removed', data => {
-          this.list.removeItem(data.key, data.val())
-        })
+      ref.on('child_removed', data => {
+        this.list.removeItem(data.key, data.val())
       })
     } else {
       this.signOut()
@@ -922,8 +921,11 @@ class Section {
   reorderToDOM() {
     const scrollTop = this.listEl.scrollTop
 
+    while (this.listEl.firstChild) {
+      this.listEl.removeChild(this.listEl.firstChild)
+    }
+
     this.items.forEach(item => {
-      item.detach()
       item.render()
     })
 
