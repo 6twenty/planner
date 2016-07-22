@@ -709,7 +709,9 @@ class List {
   }
 
   loadItem(key, attrs) {
-    if (this.items[key]) {
+    const existing = this.items[key]
+
+    if (existing && existing.el) {
       this.updateItem(key, attrs)
       return
     }

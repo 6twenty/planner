@@ -805,7 +805,9 @@ var List = function () {
   }, {
     key: 'loadItem',
     value: function loadItem(key, attrs) {
-      if (this.items[key]) {
+      var existing = this.items[key];
+
+      if (existing && existing.el) {
         this.updateItem(key, attrs);
         return;
       }
