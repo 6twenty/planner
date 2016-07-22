@@ -805,6 +805,11 @@ var List = function () {
   }, {
     key: 'loadItem',
     value: function loadItem(key, attrs) {
+      if (this.items[key]) {
+        this.updateItem(key, attrs);
+        return;
+      }
+
       var item = new Item({
         key: key,
         list: this,
@@ -822,15 +827,24 @@ var List = function () {
     key: 'updateItem',
     value: function updateItem(key, attrs) {
       var item = this.items[key];
-      var previousSection = item.section;
+      var prev = {
+        section: item.section,
+        content: item.content,
+        order: item.order
+      };
 
       item.init(attrs);
-      item.rebuild();
-
+      item.el.dataset.sectionType = item.section.name;
       this.app.cacheItem(item);
 
-      item.section.stale = true;
-      previousSection.stale = true;
+      if (item.section !== prev.section) {
+        item.section.stale = true;
+        prev.section.stale = true;
+      } else if (item.order !== prev.order) {
+        item.section.stale = true;
+      } else if (item.content !== prev.content) {
+        item.el.innerHTML = App.markdown(item.content);
+      }
     }
   }, {
     key: 'removeItem',
@@ -1036,7 +1050,8 @@ var Section = function () {
       var scrollTop = this.listEl.scrollTop;
 
       while (this.listEl.firstChild) {
-        this.listEl.removeChild(this.listEl.firstChild);
+        var el = this.listEl.firstChild;
+        this.listEl.removeChild(el);
       }
 
       this.items.forEach(function (item) {
@@ -1378,12 +1393,6 @@ var Item = function () {
       } else {
         this.awaitEditing();
       }
-    }
-  }, {
-    key: 'rebuild',
-    value: function rebuild() {
-      this.el.dataset.sectionType = this.section.name;
-      this.el.innerHTML = App.markdown(this.content);
     }
   }, {
     key: 'render',

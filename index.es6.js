@@ -709,6 +709,11 @@ class List {
   }
 
   loadItem(key, attrs) {
+    if (this.items[key]) {
+      this.updateItem(key, attrs)
+      return
+    }
+
     const item = new Item({
       key: key,
       list: this,
@@ -725,15 +730,24 @@ class List {
 
   updateItem(key, attrs) {
     const item = this.items[key]
-    const previousSection = item.section
+    const prev = {
+      section: item.section,
+      content: item.content,
+      order: item.order
+    }
 
     item.init(attrs)
-    item.rebuild()
-
+    item.el.dataset.sectionType = item.section.name
     this.app.cacheItem(item)
 
-    item.section.stale = true
-    previousSection.stale = true
+    if (item.section !== prev.section) {
+      item.section.stale = true
+      prev.section.stale = true
+    } else if (item.order !== prev.order) {
+      item.section.stale = true
+    } else if (item.content !== prev.content) {
+      item.el.innerHTML = App.markdown(item.content)
+    }
   }
 
   removeItem(key, attrs) {
@@ -925,7 +939,8 @@ class Section {
     const scrollTop = this.listEl.scrollTop
 
     while (this.listEl.firstChild) {
-      this.listEl.removeChild(this.listEl.firstChild)
+      const el = this.listEl.firstChild
+      this.listEl.removeChild(el)
     }
 
     this.items.forEach(item => {
@@ -1198,11 +1213,6 @@ class Item {
     } else {
       this.awaitEditing()
     }
-  }
-
-  rebuild() {
-    this.el.dataset.sectionType = this.section.name
-    this.el.innerHTML = App.markdown(this.content)
   }
 
   render() {
