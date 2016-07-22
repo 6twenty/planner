@@ -23,6 +23,7 @@ class App {
     }
 
     App.canDrag = true
+    App.isConnected = false
 
     this.loop()
     this.hammer()
@@ -36,8 +37,12 @@ class App {
     this.list.build()
     this.list.render()
 
-    this.loading()
-    this.firebase().then(this.init.bind(this))
+    firebase.initializeApp(this.config)
+
+    this.bootstrap()
+    this.firebase().then(() => {
+      this.init()
+    })
   }
 
   static uniqueId() {
@@ -147,17 +152,63 @@ class App {
     return this._config
   }
 
+  bootstrap() {
+    const json = sessionStorage.getItem('app:user')
+
+    if (!json) {
+      this.loading()
+      return
+    }
+
+    const cache = JSON.parse(json)
+    const date = moment(cache.date)
+    const threeDaysAgo = moment().subtract(3, 'days')
+
+    if (date.isBefore(threeDaysAgo)) {
+      this.loading()
+      this.clearCache()
+      return
+    }
+
+    const user = cache.user
+    const settings = this.el.querySelector('.settings').firstChild
+    const profile = this.el.querySelector('.profile')
+    const letter = user.displayName ? user.displayName[0] : '?'
+
+    this.db = firebase.database().ref(`users/${user.uid}/items`)
+
+    settings.innerText = letter
+    profile.innerText = letter
+
+    if (user.photoURL) {
+      settings.style.backgroundImage = `url(${user.photoURL})`
+      profile.style.backgroundImage = `url(${user.photoURL})`
+    }
+
+    let i = sessionStorage.length
+
+    while (i--) {
+      const key = sessionStorage.key(i)
+      const value = sessionStorage.getItem(key)
+
+      if (/^app:item:/.test(key)) {
+        const realKey = key.replace(/^app:item:/, '')
+        const attrs = JSON.parse(value)
+
+        this.list.loadItem(realKey, attrs)
+      }
+    }
+  }
+
   firebase() {
     const anHourAgo = moment().subtract(1, 'hour')
-    const awaitingAuthRedirect = sessionStorage.getItem('awaitingAuthRedirect')
+    const awaitingAuthRedirect = sessionStorage.getItem('app:awaitingAuthRedirect')
 
     let isAwaitingAuthRedirect = false
     if (awaitingAuthRedirect) {
       isAwaitingAuthRedirect = moment(awaitingAuthRedirect).isAfter(anHourAgo)
-      sessionStorage.removeItem('awaitingAuthRedirect')
+      sessionStorage.removeItem('app:awaitingAuthRedirect')
     }
-
-    firebase.initializeApp(this.config)
 
     return new Promise((resolve, reject) => {
 
@@ -178,13 +229,14 @@ class App {
     const authProvider = new firebase.auth[provider]()
 
     this.modal.dataset.active = '#loading'
-    sessionStorage.setItem('awaitingAuthRedirect', moment().format())
+    sessionStorage.setItem('app:awaitingAuthRedirect', moment().format())
     firebase.auth().signInWithRedirect(authProvider)
   }
 
   signOut() {
     firebase.auth().signOut()
     this.list.unload()
+    this.clearCache()
 
     const settings = this.el.querySelector('.settings').firstChild
     const profile = this.el.querySelector('.profile')
@@ -204,6 +256,20 @@ class App {
 
   init() {
     const user = firebase.auth().currentUser
+    const json = JSON.stringify({
+      date: moment().format(),
+      user: {
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        uid: user.uid
+      }
+    })
+
+    this.clearCache()
+
+    this.isConnected = true
+    this.list.el.removeAttribute('data-syncing')
+    sessionStorage.setItem('app:user', json)
 
     if (user) {
       const settings = this.el.querySelector('.settings').firstChild
@@ -226,22 +292,50 @@ class App {
         if (this.modal.dataset.active === '#loading') {
           this.modal.dataset.active = ''
         }
-      })
 
-      ref.on('child_added', data => {
-        this.list.loadItem(data.key, data.val())
-      })
+        this.list.unload()
 
-      ref.on('child_changed', data => {
-        this.list.updateItem(data.key, data.val())
-      })
+        ref.on('child_added', data => {
+          this.list.loadItem(data.key, data.val())
+        })
 
-      ref.on('child_removed', data => {
-        this.list.removeItem(data.key, data.val())
+        ref.on('child_changed', data => {
+          this.list.updateItem(data.key, data.val())
+        })
+
+        ref.on('child_removed', data => {
+          this.list.removeItem(data.key, data.val())
+        })
       })
     } else {
-      this.modal.dataset.active = '#providers'
+      this.signOut()
     }
+  }
+
+  clearCache() {
+    sessionStorage.removeItem('app:user')
+
+    let i = sessionStorage.length
+
+    while (i--) {
+      const key = sessionStorage.key(i)
+      const value = sessionStorage.getItem(key)
+
+      if (/^app:item:/.test(key)) {
+        sessionStorage.removeItem(key)
+      }
+    }
+  }
+
+  cacheItem(item) {
+    const attrs = item.attrs()
+    const json = JSON.stringify(attrs)
+
+    sessionStorage.setItem(`app:item:${item.key}`, json)
+  }
+
+  uncacheItem(item) {
+    sessionStorage.removeItem(`app:item:${item.key}`)
   }
 
   loop() {
@@ -251,7 +345,7 @@ class App {
   }
 
   tick() {
-    if (this.db && Object.keys(this.list.updates).length > 0) {
+    if (this.isConnected && Object.keys(this.list.updates).length > 0) {
       const keys = Object.keys(this.list.updates)
 
       keys.forEach(key => {
@@ -466,6 +560,7 @@ class List {
     if (opts.name) this.name = opts.name
     this.app = opts.app
     this.el = document.createElement('main')
+    this.el.setAttribute('data-syncing', '')
     this.items = {}
     this.updates = {}
   }
@@ -614,6 +709,8 @@ class List {
       order: attrs.order
     })
 
+    this.app.cacheItem(item)
+
     item.build()
     item.section.stale = true
   }
@@ -625,12 +722,16 @@ class List {
     item.init(attrs)
     item.rebuild()
 
+    this.app.cacheItem(item)
+
     item.section.stale = true
     previousSection.stale = true
   }
 
   removeItem(key, attrs) {
     const item = this.items[key]
+
+    this.app.uncacheItem(item)
 
     item.remove()
   }
@@ -1164,9 +1265,11 @@ class Item {
 
     this.awaitEditing()
 
-    this.update({
-      content: content
-    })
+    if (this.content !== content) {
+      this.update({
+        content: content
+      })
+    }
   }
 
   cancelEditing() {
@@ -1207,6 +1310,14 @@ class Item {
     range.collapse(false)
     selection.removeAllRanges()
     selection.addRange(range)
+  }
+
+  attrs() {
+    return {
+      group: this.section.id,
+      content: this.content,
+      order: this.order
+    }
   }
 
   onSingleTap(e) {
