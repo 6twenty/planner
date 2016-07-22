@@ -9,7 +9,10 @@ class App {
       this.el.classList.add('standalone')
     }
 
-    const colorHash = new ColorHash({ lightness: [0.8, 0.85, 0.9], saturation: [0.8, 0.9, 1] })
+    const colorHash = new ColorHash({
+      lightness: [0.8, 0.85, 0.9],
+      saturation: [0.8, 0.9, 1]
+    })
 
     App.hsl = (string) => {
       let hsl = colorHash.hsl(string)

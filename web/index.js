@@ -27,7 +27,10 @@ var App = function () {
       this.el.classList.add('standalone');
     }
 
-    var colorHash = new ColorHash({ lightness: [0.8, 0.85, 0.9], saturation: [0.8, 0.9, 1] });
+    var colorHash = new ColorHash({
+      lightness: [0.8, 0.85, 0.9],
+      saturation: [0.8, 0.9, 1]
+    });
 
     App.hsl = function (string) {
       var hsl = colorHash.hsl(string);
