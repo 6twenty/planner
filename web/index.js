@@ -1022,7 +1022,9 @@ var Section = function () {
     key: 'reorderFromIndex',
     value: function reorderFromIndex(index) {
       this.items.reduce(function (n, item) {
-        item.order = n;
+        item.update({
+          order: n
+        });
 
         return ++n;
       }, index);
@@ -1472,7 +1474,9 @@ var Item = function () {
       var content = this.el.innerText;
 
       if (content.replace(/\s/g, '') === '') {
-        return this.delete();
+        this.delete();
+        this.section.reorderFromDOM();
+        return;
       }
 
       this.el.innerHTML = App.markdown(content);

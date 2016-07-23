@@ -919,7 +919,9 @@ class Section {
 
   reorderFromIndex(index) {
     this.items.reduce((n, item) => {
-      item.order = n
+      item.update({
+        order: n
+      })
 
       return ++n
     }, index)
@@ -1283,7 +1285,9 @@ class Item {
     const content = this.el.innerText
 
     if (content.replace(/\s/g, '') === '') {
-      return this.delete()
+      this.delete()
+      this.section.reorderFromDOM()
+      return
     }
 
     this.el.innerHTML = App.markdown(content)
