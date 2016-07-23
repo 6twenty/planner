@@ -1214,22 +1214,15 @@ class Item {
     el.addEventListener('keydown', this.onKeydown)
 
     this.el = el
-
-    if (this.list.editing === this.key) {
-      this.startEditing()
-    } else {
-      this.awaitEditing()
-    }
   }
 
   render() {
     this.section.listEl.appendChild(this.el)
 
     if (this.list.editing === this.key) {
-      this.el.focus()
-      setTimeout(() => {
-        this.el.scrollIntoView()
-      }, 0)
+      this.startEditing()
+    } else {
+      this.awaitEditing()
     }
   }
 
@@ -1254,16 +1247,19 @@ class Item {
   }
 
   startEditing() {
-    this._html = this.el.innerHTML
-    this.list.editing = this.key
+    if (this.list.editing !== this.key) {
+      console.warn('Attempting to start editing an item which is not marked for editing')
+      return
+    }
+
     this.el.contentEditable = 'true'
     this.el.innerText = this.content
 
-    if (this.el.parentElement) {
-      this.focus() // Ensure cursor is at end
-    } else {
-      this.el.focus()
-    }
+    this.focus() // Ensure cursor is at end
+
+    setTimeout(() => {
+      this.el.scrollIntoView()
+    })
 
     this.el.removeEventListener('singletap', this.onSingleTap)
     this.el.removeEventListener('doubletap', this.onDoubleTap)
@@ -1277,6 +1273,10 @@ class Item {
   }
 
   finishEditing() {
+    if (this.list.editing !== this.key) {
+      return
+    }
+
     this.list.editing = null
     this.el.contentEditable = 'false'
     this.el.removeEventListener('blur', this.onBlur)
@@ -1304,6 +1304,10 @@ class Item {
   }
 
   cancelEditing() {
+    if (this.list.editing !== this.key) {
+      return
+    }
+
     this.el.innerText = this.content
     this.finishEditing()
   }
@@ -1363,6 +1367,8 @@ class Item {
 
   onDoubleTap(e) {
     e.stopPropagation()
+
+    this.list.editing = this.key
 
     this.startEditing()
   }
