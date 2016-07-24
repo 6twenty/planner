@@ -355,7 +355,7 @@ main section button.clear {
   z-index: 2;
 }
 
-main section button.clear:hover {
+main:not(.is-touch-device) section button.clear:hover {
   box-shadow: inset 0 0 0 4rem rgba(255,255,255,.1);
 }
 
@@ -540,7 +540,7 @@ main .item.gu-mirror {
 main .item:focus,
 main .item.gu-mirror,
 main .item.gu-transit,
-main .item:hover {
+main:not(.is-touch-device) .item:hover {
   border-color: rgba(255,255,255,.5);
 }
 

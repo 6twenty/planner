@@ -528,6 +528,16 @@ class App {
       }
     })
 
+    // Touch events activate touch-only styles
+    this.el.addEventListener('touchstart', e => {
+      this.list.el.classList.add('is-touch-device')
+    })
+
+    // Mouse events remove touch-only styles
+    this.el.addEventListener('mousemove', e => {
+      this.list.el.classList.remove('is-touch-device')
+    })
+
   }
 
   load(cached) {
@@ -567,13 +577,14 @@ class List {
   constructor(opts) {
     if (opts.name) this.name = opts.name
     this.app = opts.app
-    this.el = document.createElement('main')
-    this.el.setAttribute('data-syncing', '')
     this.items = {}
     this.updates = {}
   }
 
   build() {
+    this.el = document.createElement('main')
+    this.el.setAttribute('data-syncing', '')
+
     this.sections = [] // Ordered, for rendering sequentially
     this.sectionById = {} // For easy lookup
 

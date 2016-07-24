@@ -480,6 +480,16 @@ var App = function () {
           _this7.filtered = _this7.filtered.slice(0, _this7.filtered.length - 1);
         }
       });
+
+      // Touch events activate touch-only styles
+      this.el.addEventListener('touchstart', function (e) {
+        _this7.list.el.classList.add('is-touch-device');
+      });
+
+      // Mouse events remove touch-only styles
+      this.el.addEventListener('mousemove', function (e) {
+        _this7.list.el.classList.remove('is-touch-device');
+      });
     }
   }, {
     key: 'load',
@@ -642,8 +652,6 @@ var List = function () {
 
     if (opts.name) this.name = opts.name;
     this.app = opts.app;
-    this.el = document.createElement('main');
-    this.el.setAttribute('data-syncing', '');
     this.items = {};
     this.updates = {};
   }
@@ -652,6 +660,9 @@ var List = function () {
     key: 'build',
     value: function build() {
       var _this9 = this;
+
+      this.el = document.createElement('main');
+      this.el.setAttribute('data-syncing', '');
 
       this.sections = []; // Ordered, for rendering sequentially
       this.sectionById = {}; // For easy lookup
