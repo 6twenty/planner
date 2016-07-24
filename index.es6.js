@@ -529,13 +529,12 @@ class App {
     })
 
     // Touch events activate touch-only styles
-    this.el.addEventListener('touchstart', e => {
-      this.list.el.classList.add('is-touch-device')
-    })
+    const events = ['touchstart', 'touchmove', 'touchend']
 
-    // Mouse events remove touch-only styles
-    this.el.addEventListener('mousemove', e => {
-      this.list.el.classList.remove('is-touch-device')
+    events.forEach(event => {
+      this.el.addEventListener(event, e => {
+        this.list.el.classList.add('is-touch-device')
+      })
     })
 
   }

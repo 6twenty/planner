@@ -482,13 +482,12 @@ var App = function () {
       });
 
       // Touch events activate touch-only styles
-      this.el.addEventListener('touchstart', function (e) {
-        _this7.list.el.classList.add('is-touch-device');
-      });
+      var events = ['touchstart', 'touchmove', 'touchend'];
 
-      // Mouse events remove touch-only styles
-      this.el.addEventListener('mousemove', function (e) {
-        _this7.list.el.classList.remove('is-touch-device');
+      events.forEach(function (event) {
+        _this7.el.addEventListener(event, function (e) {
+          _this7.list.el.classList.add('is-touch-device');
+        });
       });
     }
   }, {
