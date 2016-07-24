@@ -1373,6 +1373,7 @@ var Item = function () {
       this.onSingleTap = this.onSingleTap.bind(this);
       this.onDoubleTap = this.onDoubleTap.bind(this);
       this.onKeydown = this.onKeydown.bind(this);
+      this.onClick = this.onClick.bind(this);
       this.onBlur = this.onBlur.bind(this);
       this.onPaste = this.onPaste.bind(this);
       this.onTouchStart = this.onTouchStart.bind(this);
@@ -1392,6 +1393,7 @@ var Item = function () {
       el.tabIndex = 1;
 
       el.addEventListener('keydown', this.onKeydown);
+      el.addEventListener('click', this.onClick);
 
       this.el = el;
     }
@@ -1584,6 +1586,11 @@ var Item = function () {
       } else {
         if (e.which === 13) this.startEditing(); // Enter
       }
+    }
+  }, {
+    key: 'onClick',
+    value: function onClick(e) {
+      e.preventDefault();
     }
   }, {
     key: 'onBlur',

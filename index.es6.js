@@ -1182,6 +1182,7 @@ class Item {
     this.onSingleTap = this.onSingleTap.bind(this)
     this.onDoubleTap = this.onDoubleTap.bind(this)
     this.onKeydown = this.onKeydown.bind(this)
+    this.onClick = this.onClick.bind(this)
     this.onBlur = this.onBlur.bind(this)
     this.onPaste = this.onPaste.bind(this)
     this.onTouchStart = this.onTouchStart.bind(this)
@@ -1212,6 +1213,7 @@ class Item {
     el.tabIndex = 1
 
     el.addEventListener('keydown', this.onKeydown)
+    el.addEventListener('click', this.onClick)
 
     this.el = el
   }
@@ -1386,6 +1388,10 @@ class Item {
     } else {
       if (e.which === 13) this.startEditing() // Enter
     }
+  }
+
+  onClick(e) {
+    e.preventDefault()
   }
 
   onBlur(e) {
