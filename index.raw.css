@@ -486,14 +486,14 @@ main .item.gu-mirror {
   cursor: grabbing;
 }
 
-main .item:focus,
 main .item.gu-mirror,
 main .item.gu-transit,
+main:not(.is-touch-device) .item:focus,
 main:not(.is-touch-device) .item:hover {
   border-color: rgba(255,255,255,.5);
 }
 
-main .item:focus {
+main:not(.is-touch-device) .item:focus {
   border-color: white;
 }
 
