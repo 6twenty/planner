@@ -1600,6 +1600,10 @@ var Item = function () {
   }, {
     key: 'onClick',
     value: function onClick(e) {
+      if (e.target.tagName === 'A') {
+        return;
+      }
+
       e.preventDefault();
     }
   }, {

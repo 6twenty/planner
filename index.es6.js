@@ -1401,6 +1401,10 @@ class Item {
   }
 
   onClick(e) {
+    if (e.target.tagName === 'A') {
+      return
+    }
+    
     e.preventDefault()
   }
 
