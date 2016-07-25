@@ -1412,13 +1412,15 @@ class Item {
     e.preventDefault()
     e.stopPropagation()
 
-    const clipboardData = e.clipboardData || window.clipboardData
-    const pastedData = clipboardData.getData('Text')
+    const pastedData = e.clipboardData.getData('text/plain')
+    const data = pastedData.replace(/\n/g, '<br>')
     const selection = window.getSelection()
     const range = selection.getRangeAt(0)
+    const placeholder = `!!!${Date.now()}!!!`
 
     range.deleteContents()
-    range.insertNode(document.createTextNode(pastedData))
+    range.insertNode(document.createTextNode(placeholder))
+    this.el.innerHTML = this.el.innerHTML.replace(placeholder, data)
     this.focus()
   }
 

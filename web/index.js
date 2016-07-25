@@ -1613,13 +1613,15 @@ var Item = function () {
       e.preventDefault();
       e.stopPropagation();
 
-      var clipboardData = e.clipboardData || window.clipboardData;
-      var pastedData = clipboardData.getData('Text');
+      var pastedData = e.clipboardData.getData('text/plain');
+      var data = pastedData.replace(/\n/g, '<br>');
       var selection = window.getSelection();
       var range = selection.getRangeAt(0);
+      var placeholder = '!!!' + Date.now() + '!!!';
 
       range.deleteContents();
-      range.insertNode(document.createTextNode(pastedData));
+      range.insertNode(document.createTextNode(placeholder));
+      this.el.innerHTML = this.el.innerHTML.replace(placeholder, data);
       this.focus();
     }
   }, {
