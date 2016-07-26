@@ -439,6 +439,7 @@ class App {
     const signOut = document.createElement('button')
 
     close.classList.add('close')
+    close.classList.add('cross')
     profile.classList.add('profile')
     signOut.innerText = 'Sign out'
     section.dataset.id = 'settings'
@@ -842,6 +843,7 @@ class Section {
     const section = document.createElement('section')
     const header = document.createElement('header')
     const back = document.createElement('button')
+    const chevron = document.createElement('span')
     const list = document.createElement('div')
 
     section.appendChild(header)
@@ -863,8 +865,10 @@ class Section {
 
     header.innerText = this.title
     back.classList.add('back')
+    chevron.classList.add('chevron')
     list.classList.add('list')
     header.appendChild(back)
+    back.appendChild(chevron)
 
     this.el = section
     this.header = header
@@ -909,7 +913,7 @@ class Section {
     })
 
     back.addEventListener('singletap', e => {
-      if (e.target !== back) return
+      if (!(e.target === back || e.target === chevron)) return
 
       e.stopPropagation()
 
@@ -1404,7 +1408,7 @@ class Item {
     if (e.target.tagName === 'A') {
       return
     }
-    
+
     e.preventDefault()
   }
 

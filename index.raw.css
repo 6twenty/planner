@@ -8,6 +8,64 @@
   }
 }
 
+.cross,
+.chevron {
+  display: inline-block;
+	position: relative;
+  font-size: inherit;
+  color: inherit;
+  height: 2.3em;
+  width: 2.3em;
+}
+
+.cross::before,
+.cross::after,
+.chevron::before,
+.chevron::after {
+  content: '';
+  display: block;
+  position: absolute;
+  border-radius: .2em;
+  background: currentColor;
+}
+
+.cross {
+  transform: rotate(45deg);
+}
+
+.cross::before,
+.cross::after {
+	width: 2.3em;
+	height: .5em;
+  top: .9em;
+}
+
+.cross::after {
+  height: 2.3em;
+  width: .5em;
+  top: auto;
+  left: .9em;
+}
+
+.chevron {
+  transform: rotate(135deg);
+}
+
+.chevron::before,
+.chevron::after {
+	width: 1.4em;
+	height: .5em;
+  top: 1.2em;
+  left: .3em;
+}
+
+.chevron::after {
+  height: 1.4em;
+  width: .5em;
+  top: .3em;
+  left: 1.2em;
+}
+
 html,
 body {
   margin: 0;
@@ -102,15 +160,9 @@ aside:empty {
 
 .modal section .close {
   cursor: pointer;
-  font-size: 2rem;
   position: fixed;
   top: 2rem;
   right: 2rem;
-  line-height: 2rem;
-}
-
-.modal section .close::after {
-  content: '╳';
 }
 
 .modal section .profile {
@@ -284,10 +336,6 @@ main section.done .list {
 
 main section button.back {
   display: none;
-}
-
-main section button.back::before {
-  content: '⌃';
 }
 
 main section button.clear {
@@ -779,13 +827,10 @@ main .item.gu-mirror[data-section-type="done"] {
   main[data-active^="#"] section button.back {
     display: block;
     position: absolute;
-    top: 50%;
-    left: 1.5rem;
-    height: 4rem;
-    width: 4rem;
-    line-height: 4rem;
-    font-size: 3rem;
-    transform: translateY(-50%) rotate(-90deg);
+    top: calc(50% - 2.15em);
+    left: .5rem;
+    font-size: .8em;
+    padding: 1em;
   }
 
   main[data-active=""] section:first-of-type .list {

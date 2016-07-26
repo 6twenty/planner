@@ -387,6 +387,7 @@ var App = function () {
       var signOut = document.createElement('button');
 
       close.classList.add('close');
+      close.classList.add('cross');
       profile.classList.add('profile');
       signOut.innerText = 'Sign out';
       section.dataset.id = 'settings';
@@ -944,6 +945,7 @@ var Section = function () {
       var section = document.createElement('section');
       var header = document.createElement('header');
       var back = document.createElement('button');
+      var chevron = document.createElement('span');
       var list = document.createElement('div');
 
       section.appendChild(header);
@@ -965,8 +967,10 @@ var Section = function () {
 
       header.innerText = this.title;
       back.classList.add('back');
+      chevron.classList.add('chevron');
       list.classList.add('list');
       header.appendChild(back);
+      back.appendChild(chevron);
 
       this.el = section;
       this.header = header;
@@ -1011,7 +1015,7 @@ var Section = function () {
       });
 
       back.addEventListener('singletap', function (e) {
-        if (e.target !== back) return;
+        if (!(e.target === back || e.target === chevron)) return;
 
         e.stopPropagation();
 
