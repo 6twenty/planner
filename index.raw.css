@@ -88,7 +88,11 @@ body {
   user-select: none;
 }
 
-body * {
+body *,
+body::before,
+body::after,
+body *::before,
+body *::after {
   box-sizing: inherit;
 }
 
@@ -438,18 +442,49 @@ main section.done {
 }
 
 main section .list::after {
-  display: none;
+  display: block;
   position: absolute;
-  top: 3rem;
-  left: 3rem;
-  right: 3rem;
-  bottom: 0;
+  top: 2rem;
+  left: 2rem;
+  right: 2rem;
+  padding: 1rem 2rem;
+  bottom: auto;
   text-align: center;
-  opacity: .5;
+  opacity: 0;
+  pointer-events: none;
+  background-color: transparent;
+  color: white;
+  z-index: 0;
+}
+
+main section .list::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 1rem;
+  left: calc(50% - 1rem);
+  border: solid 1rem transparent;
+  border-top: none;
+  border-bottom-color: white;
+  opacity: 0;
+  z-index: 0;
+}
+
+main section .list::before,
+main section .list::after {
+  transition-property: opacity, color, background-color, z-index;
+  transition-duration: .2s;
+  transition-timing-function: linear, step-end, step-end, step-end;
+  transition-delay: .2s, .2s, .2s, .2s;
+}
+
+main[data-syncing] section .list:not(:empty)::before,
+main[data-syncing] section .list:not(:empty)::after {
+  display: none;
 }
 
 main section .list:empty::after {
-  display: block;
+  opacity: .5;
 }
 
 main section.today .list::after {
@@ -479,6 +514,19 @@ main section.done .list::after {
 
 main section.overdue .list::after {
   content: 'Items will show up here if they aren\'t completed in time. If this list is always empty, you\'re doing it right.';
+}
+
+main section header:hover + .list::after {
+  background-color: white;
+  color: #77aaff;
+}
+
+main section header:hover + .list::before,
+main section header:hover + .list::after {
+  z-index: 10;
+  opacity: 1;
+  transition-timing-function: linear, step-start, step-start, step-start;
+  transition-delay: 1s, 1s, 1s, 1s;
 }
 
 main .item {
@@ -585,8 +633,6 @@ main .item.gu-transit {
 }
 
 main .item.gu-mirror {
-  /*transform: scale(1.1);*/
-  /*transform-origin: 0 0;*/
   opacity: .8;
 }
 
@@ -708,6 +754,10 @@ main .item.gu-mirror[data-section-type="done"] {
   main[data-active="#overdue"] section[data-section-id="overdue"] .list,
   main[data-active="#done"] section[data-section-id="done"] .list {
     display: block;
+  }
+
+  main section header:hover + .list:not(:empty)::after {
+    display: none;
   }
 
   main section.done .list {
