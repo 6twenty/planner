@@ -1421,15 +1421,29 @@ class Item {
     e.stopPropagation()
 
     const pastedData = e.clipboardData.getData('text/plain')
-    const data = pastedData.replace(/\n/g, '<br>')
     const selection = window.getSelection()
     const range = selection.getRangeAt(0)
-    const placeholder = `!!!${Date.now()}!!!`
+    const nodes = pastedData.split(/\n/).map(part => {
+      return document.createTextNode(part)
+    })
 
     range.deleteContents()
-    range.insertNode(document.createTextNode(placeholder))
-    this.el.innerHTML = this.el.innerHTML.replace(placeholder, data)
-    this.focus()
+
+    // Do this in reverse, since each  node is inserted
+    // at the start of the range
+    nodes.reverse().forEach((node, i) => {
+      range.insertNode(node)
+
+      if (i < (nodes.length - 1)) {
+        let br = document.createElement('br')
+        range.insertNode(br)
+      }
+    })
+
+    // Select up to the end of the last new node, then
+    // collapse to that point
+    selection.extend(nodes[nodes.length - 1], 0)
+    selection.collapseToEnd()
   }
 
   onTouchStart(e) {

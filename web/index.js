@@ -1622,15 +1622,29 @@ var Item = function () {
       e.stopPropagation();
 
       var pastedData = e.clipboardData.getData('text/plain');
-      var data = pastedData.replace(/\n/g, '<br>');
       var selection = window.getSelection();
       var range = selection.getRangeAt(0);
-      var placeholder = '!!!' + Date.now() + '!!!';
+      var nodes = pastedData.split(/\n/).map(function (part) {
+        return document.createTextNode(part);
+      });
 
       range.deleteContents();
-      range.insertNode(document.createTextNode(placeholder));
-      this.el.innerHTML = this.el.innerHTML.replace(placeholder, data);
-      this.focus();
+
+      // Do this in reverse, since each  node is inserted
+      // at the start of the range
+      nodes.reverse().forEach(function (node, i) {
+        range.insertNode(node);
+
+        if (i < nodes.length - 1) {
+          var br = document.createElement('br');
+          range.insertNode(br);
+        }
+      });
+
+      // Select up to the end of the last new node, then
+      // collapse to that point
+      selection.extend(nodes[nodes.length - 1], 0);
+      selection.collapseToEnd();
     }
   }, {
     key: 'onTouchStart',
