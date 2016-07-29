@@ -1641,9 +1641,11 @@ var Item = function () {
         }
       });
 
-      // Select up to the end of the last new node, then
-      // collapse to that point
-      selection.extend(nodes[nodes.length - 1], 0);
+      // Select the last new node, then collapse to the end
+      range.selectNodeContents(nodes[nodes.length - 1]);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
       selection.collapseToEnd();
     }
   }, {
