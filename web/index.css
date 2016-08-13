@@ -288,23 +288,23 @@ aside:empty {
 }
 
 @-webkit-keyframes clockwise {
-  0%  { -webkit-transform: rotate(0deg); transform: rotate(0deg) }
-  100%{ -webkit-transform: rotate(360deg); transform: rotate(360deg) }
+  0%   { -webkit-transform: rotate(0deg); transform: rotate(0deg) }
+  100% { -webkit-transform: rotate(360deg); transform: rotate(360deg) }
 }
 
 @keyframes clockwise {
-  0%  { -webkit-transform: rotate(0deg); transform: rotate(0deg) }
-  100%{ -webkit-transform: rotate(360deg); transform: rotate(360deg) }
+  0%   { -webkit-transform: rotate(0deg); transform: rotate(0deg) }
+  100% { -webkit-transform: rotate(360deg); transform: rotate(360deg) }
 }
 
 @-webkit-keyframes anticlockwise {
-  0%  { -webkit-transform: rotate(360deg); transform: rotate(360deg) }
-  100%{ -webkit-transform: rotate(0deg); transform: rotate(0deg) }
+  0%   { -webkit-transform: rotate(360deg); transform: rotate(360deg) }
+  100% { -webkit-transform: rotate(0deg); transform: rotate(0deg) }
 }
 
 @keyframes anticlockwise {
-  0%  { -webkit-transform: rotate(360deg); transform: rotate(360deg) }
-  100%{ -webkit-transform: rotate(0deg); transform: rotate(0deg) }
+  0%   { -webkit-transform: rotate(360deg); transform: rotate(360deg) }
+  100% { -webkit-transform: rotate(0deg); transform: rotate(0deg) }
 }
 
 main {
@@ -535,7 +535,7 @@ main section.overdue .list::after {
 }
 
 main .item {
-  padding: 0 1rem 0 .5rem;
+  padding: .1rem 1rem .1rem .5rem;
   border-left: solid .5rem transparent;
   outline: 0;
   line-height: 1.5;
@@ -620,8 +620,16 @@ main .item ol {
 }
 
 main .item blockquote {
-  padding-left: 1.5rem;
-  border-left: solid .5rem rgba(255,255,255,.25);
+  opacity: .75;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  background: rgba(255,255,255,.1);
+  position: relative;
+  border-left: solid 1rem rgba(255,255,255,.1);
+  font-size: .9em;
+  line-height: 1.1;
 }
 
 main .item ul,
