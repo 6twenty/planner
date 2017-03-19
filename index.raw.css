@@ -445,7 +445,7 @@ main section .list::after {
   right: 3rem;
   bottom: 0;
   text-align: center;
-  opacity: .5;
+  color: rgba(255,255,255,.5);
 }
 
 main section .list:empty::after {
