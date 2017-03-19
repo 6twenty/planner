@@ -1566,8 +1566,25 @@ var Item = function () {
       };
     }
   }, {
+    key: 'canHandleEvent',
+    value: function canHandleEvent(e) {
+      if (e.target.tagName === 'A') {
+        return false;
+      }
+
+      if (e.target.tagName === 'DETAILS') {
+        return false;
+      }
+
+      return true;
+    }
+  }, {
     key: 'onSingleTap',
     value: function onSingleTap(e) {
+      if (!this.canHandleEvent(e)) {
+        return;
+      }
+
       e.stopPropagation();
 
       if (document.activeElement === this.el) {
@@ -1604,7 +1621,7 @@ var Item = function () {
   }, {
     key: 'onClick',
     value: function onClick(e) {
-      if (e.target.tagName === 'A') {
+      if (!this.canHandleEvent(e)) {
         return;
       }
 

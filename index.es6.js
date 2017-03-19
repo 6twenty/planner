@@ -1371,7 +1371,23 @@ class Item {
     }
   }
 
+  canHandleEvent(e) {
+    if (e.target.tagName === 'A') {
+      return false
+    }
+
+    if (e.target.tagName === 'DETAILS') {
+      return false
+    }
+
+    return true
+  }
+
   onSingleTap(e) {
+    if (!this.canHandleEvent(e)) {
+      return
+    }
+    
     e.stopPropagation()
 
     if (document.activeElement === this.el) {
@@ -1405,7 +1421,7 @@ class Item {
   }
 
   onClick(e) {
-    if (e.target.tagName === 'A') {
+    if (!this.canHandleEvent(e)) {
       return
     }
 
