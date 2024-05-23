@@ -1,5 +1,6 @@
 {
 	"name": "Planner",
+	"start_url": "http://planner-6059a.firebaseapp.com",
 	"icons": [
 		{
 			"src": "\/android-chrome-192x192.png",
